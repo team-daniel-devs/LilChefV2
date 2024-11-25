@@ -104,7 +104,7 @@ const LandingPage = () => {
           <p className="mt-4 text-sm text-gray-500">
             Already a member?{" "}
             <a
-              href="/signin"
+              href="/login"
               className="text-green-600 font-semibold hover:underline"
             >
               Sign In

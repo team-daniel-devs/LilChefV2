@@ -6,6 +6,7 @@ import Taskbar from './components/Navbar'; // Import the Taskbar component
 import RecipePage from './pages/RecipePage';
 import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
+import Login from './pages/Login';
 
 const App = () => {
   const [showApp, setShowApp] = useState(true);
@@ -73,6 +74,7 @@ const App = () => {
           <Route path="/recipepage" element={<RecipePage />} />
           <Route path="/home" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
 
         {/* Conditionally render the Taskbar */}
