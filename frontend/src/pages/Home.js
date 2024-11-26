@@ -1,69 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import RecipeCard from "../components/RecipeCard"; // Import the RecipeCard component
-
-// Sample Recipe Data Array
-const recipes = [
-  {
-    id: 1,
-    title: "Breakfast Sandwich",
-    prepTime: "10 mins",
-    cookTime: "15 mins",
-    servingCost: "$3.20",
-    nutrition: {
-      calories: "300 kcal",
-      protein: "15g",
-      fat: "5g",
-      sugar: "2g",
-    },
-    ingredients: [
-      "English Muffin",
-      "Sausage Patty",
-      "Guacamole",
-      "Eggs",
-      "Cheese",
-      "Bell Pepper",
-      "Salt",
-      "Pepper",
-    ],
-  },
-  {
-    id: 2,
-    title: "Avocado Toast",
-    prepTime: "5 mins",
-    cookTime: "5 mins",
-    servingCost: "$2.50",
-    nutrition: {
-      calories: "250 kcal",
-      protein: "6g",
-      fat: "12g",
-      sugar: "1g",
-    },
-    ingredients: ["Bread", "Avocado", "Salt", "Pepper", "Lemon"],
-  },
-  {
-    id: 3,
-    title: "Pancakes",
-    prepTime: "15 mins",
-    cookTime: "20 mins",
-    servingCost: "$1.80",
-    nutrition: {
-      calories: "350 kcal",
-      protein: "8g",
-      fat: "10g",
-      sugar: "5g",
-    },
-    ingredients: ["Flour", "Milk", "Eggs", "Butter", "Sugar", "Maple Syrup"],
-  },
-];
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebaseconfig"; // Import Firestore
 
 const Home = () => {
+  const [recipes, setRecipes] = useState([]); // Store recipes from Firestore
   const [currentIndex, setCurrentIndex] = useState(0); // Track the current recipe index
   const [rotation, setRotation] = useState(0); // Track rotation angle
 
+  // Fetch recipes from Firestore
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "recipes")); // Fetch all documents
+        const fetchedRecipes = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          // Parse the `ingredients` field, safely convert the string to an array
+          let ingredients = [];
+          try {
+            ingredients = data.ingredients
+              ? JSON.parse(data.ingredients.replace(/'/g, '"')) // Replace single quotes with double quotes
+              : [];
+          } catch (parseError) {
+            console.error(
+              "Error parsing ingredients for recipe:",
+              data.title,
+              data.ingredients
+            );
+            ingredients = []; // Default to an empty array if parsing fails
+          }
+
+          // Limit the displayed ingredients to 5
+          const displayedIngredients = ingredients.slice(0, 5);
+
+          return {
+            id: doc.id,
+            title: data.title || "Untitled Recipe",
+            prepTime: data.prepTime || "N/A", // Add prepTime if available
+            cookTime: data.cookTime || "N/A", // Add cookTime if available
+            servingCost: data.servingCost || "N/A", // Add servingCost if available
+            nutrition: data.nutrition || {}, // Include nutrition if available
+            ingredients: displayedIngredients, // Display only the first 5 ingredients
+            totalIngredients: ingredients.length, // Keep the total number of ingredients
+            imageName: data.image_name || null, // Pass image_name
+          };
+        });
+
+        setRecipes(fetchedRecipes); // Update state with fetched recipes
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
+
   const handleSwipe = (direction) => {
     if (direction === "left" || direction === "right") {
-      // Move to the next recipe in the array
       setCurrentIndex((prevIndex) =>
         prevIndex === recipes.length - 1 ? 0 : prevIndex + 1
       );
@@ -87,7 +82,7 @@ const Home = () => {
               key={recipe.id}
               className={`absolute w-full max-w-md ${
                 index === 0 ? "z-10" : "z-0"
-              } p-4`} // Added padding to card wrapper
+              } p-4`}
               drag={index === 0 ? "x" : false} // Only allow drag on the front card
               dragConstraints={{ left: 0, right: 0 }}
               initial={{

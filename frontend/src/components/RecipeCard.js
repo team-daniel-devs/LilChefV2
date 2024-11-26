@@ -1,12 +1,28 @@
 import React from "react";
 
 const RecipeCard = ({ recipe }) => {
+  // Function to normalize the `image_name` to match the file names
+  const getNormalizedImageName = (imageName) => {
+    if (!imageName) return null;
+    return `${imageName.toLowerCase().replace(/\s+/g, "-")}.jpg`; // Convert spaces to dashes and append .jpg
+  };
+
+  const normalizedImageName = getNormalizedImageName(recipe.imageName);
+
   return (
     <div className="max-w-md mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200">
-      {/* Image Placeholder */}
+      {/* Recipe Image */}
       <div className="h-48 w-full bg-gray-300 flex items-center justify-center">
-        {/* Placeholder for the image */}
-        <span className="text-gray-500">Image Placeholder</span>
+        {normalizedImageName ? (
+          <img
+            src={`/Food%20Images/${normalizedImageName}`} // Dynamic image path (handle space with %20)
+            alt={recipe.title}
+            className="h-full w-full object-cover"
+            onError={(e) => (e.target.src = "/images/placeholder.jpg")} // Fallback image
+          />
+        ) : (
+          <span className="text-gray-500">Image Placeholder</span>
+        )}
       </div>
 
       {/* Content Section */}
@@ -59,7 +75,7 @@ const RecipeCard = ({ recipe }) => {
         {/* Ingredients Section */}
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">
-            Ingredients ({recipe.ingredients.length})
+            Ingredients ({recipe.totalIngredients})
           </h3>
           <div className="flex flex-wrap gap-2">
             {recipe.ingredients.map((ingredient, index) => (
