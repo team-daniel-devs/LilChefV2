@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../firebaseconfig";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Import Firebase Auth for user info
+import ShoppingListPopup from "../components/ShoppingListPopup";
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the recipe ID from the URL
@@ -9,8 +11,11 @@ const RecipePage = () => {
   const scrollContainerRef = useRef(null);
   const [activeTab, setActiveTab] = useState(0);
   const [recipe, setRecipe] = useState(null);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
 
   const tabs = ["Ingredients", "Instructions", "Nutrition"];
+  const auth = getAuth(); // Get Firebase Auth instance
+  const currentUser = auth.currentUser; // Get the current logged-in user
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -43,6 +48,24 @@ const RecipePage = () => {
 
     fetchRecipe();
   }, [recipeId]);
+
+  const handleSaveRecipe = async () => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+
+    try {
+      await updateDoc(userDocRef, {
+        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the savedRecipes array
+      });
+      console.log("Recipe saved successfully!");
+    } catch (error) {
+      console.error("Error saving recipe:", error);
+    }
+  };
 
   useEffect(() => {
     document.body.style.overflow = "auto";
@@ -127,6 +150,15 @@ const RecipePage = () => {
     </div>,
   ];
 
+
+  const handleAddToShoppingList = () => {
+    setIsPopupVisible(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupVisible(false);
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
       {/* Image Section */}
@@ -139,7 +171,7 @@ const RecipePage = () => {
         <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
           <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
         </button>
-        <button className="absolute top-4 right-4">
+        <button onClick={handleSaveRecipe} className="absolute top-4 right-4">
           <img src="/images/save.png" alt="Save" className="w-8 h-8" />
         </button>
 
@@ -193,6 +225,14 @@ const RecipePage = () => {
           ))}
         </div>
 
+      {/* Popup */}
+      {isPopupVisible && (
+        <ShoppingListPopup
+          recipe={recipe} // Pass recipe data to the popup
+          onClose={handleClosePopup} // Close function
+        />
+      )}
+
       {/* Swipable Content */}
       <div
           ref={scrollContainerRef}
@@ -218,12 +258,9 @@ const RecipePage = () => {
                   <button
                     className="flex items-center justify-center border border-green-500 text-green-500 font-medium rounded-full"
                     style={{ width: "219px", height: "37px" }}
+                    onClick={handleAddToShoppingList} // Open Popup
                   >
-                    <img
-                      src="/images/list.png"
-                      alt="Save Icon"
-                      className="w-5 h-5 mr-2"
-                    />
+                    <img src="/images/list.png" alt="Save Icon" className="w-5 h-5 mr-2" />
                     Add to Shopping List
                   </button>
                 </div>
