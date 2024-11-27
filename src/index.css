@@ -49,3 +49,26 @@ html {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
 }
+
+/* Style for the overall container */
+.recipe-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  height: 100vh; /* Full screen height */
+}
+
+/* Style for each card */
+.recipe-card {
+  flex: 0 0 80%; /* Ensure cards don't shrink or grow */
+  max-width: 400px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  transform: translateX(0px); /* Default position */
+  transition: transform 0.3s ease;
+}

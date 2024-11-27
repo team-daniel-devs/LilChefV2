@@ -1,8 +1,8 @@
 import React from "react";
 
-const RecipeCard = ({ recipe }) => {
+const RecipeCard = ({ recipe, opacity, text, color}) => {
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200">
+    <div className="relative max-w-md mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200">
       {/* Image Placeholder */}
       <div className="h-48 w-full bg-gray-300 flex items-center justify-center">
         {/* Placeholder for the image */}
@@ -72,6 +72,18 @@ const RecipeCard = ({ recipe }) => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Full-covering white overlay */}
+      <div
+        className="absolute inset-0 bg-white flex justify-center items-center text-gray-800 font-bold"
+        style={{
+          opacity: opacity,
+          border: `2px solid ${color}`,
+          boxShadow: `0 0 10px 5px ${color}`, // Creates the glowing effect
+        }}
+      >        
+        {text}
       </div>
     </div>
   );
