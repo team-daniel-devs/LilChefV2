@@ -1,53 +1,62 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { db } from "../firebaseconfig";
+import { doc, getDoc } from "firebase/firestore";
 import SavedRecipe from "../components/SavedRecipe";
 
 const Saved = () => {
+  const [savedRecipes, setSavedRecipes] = useState([]);
+  const userId = "C87jGxF8LzRxrHzXt5EIkORhNHS2"; // Replace with dynamic user ID logic
 
-  //put this to enable scrolling!
   useEffect(() => {
-    // Enable scrolling for this page
-    document.body.style.overflow = "auto";
+    const fetchSavedRecipes = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (!userDoc.exists()) {
+          console.error("User not found");
+          return;
+        }
 
-    return () => {
-      // Restore original overflow when leaving this page
-      document.body.style.overflow = "hidden";
+        const userData = userDoc.data();
+        const recipeIds = userData.savedRecipes || [];
+
+        const recipePromises = recipeIds.map((recipeId) =>
+          getDoc(doc(db, "recipes", recipeId))
+        );
+
+        const recipeDocs = await Promise.all(recipePromises);
+        const recipes = recipeDocs
+          .filter((doc) => doc.exists())
+          .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        setSavedRecipes(recipes);
+      } catch (error) {
+        console.error("Error fetching saved recipes:", error);
+      }
     };
-  }, []);
 
-  const recipes = [
-    { title: "Loaded Nachos", likes: 300, image: "https://via.placeholder.com/300" },
-    { title: "Beef Stroganoff", likes: 575, image: "https://via.placeholder.com/300" },
-    { title: "Stuffed Zucchini", likes: 650, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    // Add more recipes as needed
-  ];
+    fetchSavedRecipes();
+  }, [userId]);
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-gray-100">
       {/* Header */}
-      <header className="flex items-center justify-center p-10">
-        <h1 className="text-2xl font-semibold text-gray-800">Saved Recipes</h1>
+      <header className="flex justify-between items-center px-4 py-6">
+        <h1 className="text-2xl font-bold">Saved Recipes</h1>
+        <img
+          src="/images/profile-icon.png"
+          alt="Profile"
+          className="w-8 h-8 rounded-full"
+        />
       </header>
 
       {/* Search Bar */}
       <div className="mb-4">
         <div className="flex items-center bg-white p-3 rounded-lg shadow">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+          <img
+            src="/images/search.png"
+            alt="Search"
             className="w-5 h-5 text-gray-500 mr-2"
-          >
-            <path d="M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85a1.007 1.007 0 00-.115-.1zm-5.479.607a5.5 5.5 0 1110 0 5.5 5.5 0 01-10 0z" />
-          </svg>
+          />
           <input
             type="text"
             placeholder="Search saved recipes"
@@ -56,27 +65,49 @@ const Saved = () => {
         </div>
       </div>
 
+
       {/* Filter and Sort Buttons */}
       <div className="flex gap-4 mb-6">
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
+        <button className="flex-1 bg-green-500 text-white py-2 rounded-full flex items-center justify-center">
+          <img
+            src="/images/filter.png"
+            alt="Filter"
+            className="w-5 h-5 mr-2"
+          />
           Filter
         </button>
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
+        <button className="flex-1 bg-green-500 text-white py-2 rounded-full flex items-center justify-center">
+          <img
+            src="/images/sort.png"
+            alt="Sort"
+            className="w-5 h-5 mr-2"
+          />
           Sort
         </button>
       </div>
 
       {/* Recipe Grid */}
       <div className="grid grid-cols-2 gap-4">
-        {recipes.map((recipe, index) => (
+        {savedRecipes.map((recipe) => (
           <SavedRecipe
-            key={index}
+            key={recipe.id}
+            recipeId={recipe.id} // Pass recipeId for navigation
             title={recipe.title}
-            likes={recipe.likes}
-            image={recipe.image}
+            image={`/Food Images/${recipe.image_name}.jpg`}
+            likes={Math.floor(Math.random() * 1000)} // Temporary likes
+            cookingTime={recipe.cooking_time || "N/A"} // Default to N/A if cooking time is missing
           />
         ))}
       </div>
+
+      {/* Navigation Bar */}
+      <footer className="fixed bottom-0 left-0 w-full bg-white shadow-lg py-4 flex justify-around">
+        <img src="/images/home-icon.png" alt="Home" className="w-6 h-6" />
+        <img src="/images/search-icon.png" alt="Search" className="w-6 h-6" />
+        <img src="/images/calendar-icon.png" alt="Plan" className="w-6 h-6" />
+        <img src="/images/saved-icon.png" alt="Saved" className="w-6 h-6" />
+        <img src="/images/cart-icon.png" alt="Cart" className="w-6 h-6" />
+      </footer>
     </div>
   );
 };
