@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const admin = require('./firebaseAdmin'); 
+const admin = require('./firebaseAdmin'); // Firebase admin SDK
+const firestore = admin.firestore(); // Access Firestore
 
 router.post('/', async (req, res) => {
     const { first_name, email, password } = req.body;
@@ -23,6 +24,16 @@ router.post('/', async (req, res) => {
         });
 
         console.log('Successfully created new user:', userRecord.uid);
+
+        // Create a Firestore document for the user
+        console.log('Creating Firestore document...');
+        await firestore.collection('users').doc(userRecord.uid).set({
+            email: email,
+            firstName: first_name,
+            savedRecipes: [], // Initialize an empty array for saved recipes
+        });
+
+        console.log('Successfully created Firestore document for user.');
 
         res.status(201).json({ message: 'User registered successfully!', uid: userRecord.uid });
     } catch (error) {

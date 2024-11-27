@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import RecipeCard from "../components/RecipeCard"; // Import the RecipeCard component
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebaseconfig"; // Import Firestore
+import { db } from "../firebaseconfig"; 
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [recipes, setRecipes] = useState([]); // Store recipes from Firestore
@@ -114,7 +115,10 @@ const Home = () => {
                 }
               }}
             >
-              <RecipeCard recipe={recipe} />
+              <Link to={`/recipepage/${recipe.id}`}>
+                {/* Wrap RecipeCard in Link */}
+                <RecipeCard recipe={recipe} />
+              </Link>
             </motion.div>
           ))}
         </AnimatePresence>

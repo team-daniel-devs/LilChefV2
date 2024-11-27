@@ -71,10 +71,11 @@ const App = () => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/saved" element={<Saved />} />
-          <Route path="/recipepage" element={<RecipePage />} />
           <Route path="/home" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/recipepage" element={<RecipePage />} />
+          <Route path="/recipepage/:recipeId" element={<RecipePage />} />
         </Routes>
 
         {/* Conditionally render the Taskbar */}
