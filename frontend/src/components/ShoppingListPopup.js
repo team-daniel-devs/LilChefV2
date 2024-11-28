@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 
 const ShoppingListPopup = ({ recipe, onClose }) => {
+  // State to track selected ingredients
   const [selectedIngredients, setSelectedIngredients] = useState([]);
 
+  // Toggle individual ingredient selection
   const handleSelectIngredient = (ingredient) => {
     if (selectedIngredients.includes(ingredient)) {
       setSelectedIngredients(
@@ -13,6 +15,7 @@ const ShoppingListPopup = ({ recipe, onClose }) => {
     }
   };
 
+  // Select or Deselect all ingredients
   const handleSelectAll = () => {
     if (selectedIngredients.length === recipe.ingredients.length) {
       setSelectedIngredients([]); // Deselect all
@@ -21,9 +24,10 @@ const ShoppingListPopup = ({ recipe, onClose }) => {
     }
   };
 
+  // Add selected ingredients to the shopping list
   const handleAddToList = () => {
     console.log("Ingredients added to shopping list:", selectedIngredients);
-    onClose(); // Close popup after adding
+    onClose(); // Close the popup
   };
 
   return (
@@ -33,8 +37,8 @@ const ShoppingListPopup = ({ recipe, onClose }) => {
         style={{
           height: "90%", // Fills most of the screen height
           maxWidth: "100%", // Ensures full screen width
-          borderTopLeftRadius: "1rem",
-          borderTopRightRadius: "1rem",
+          borderTopLeftRadius: "1rem", // Rounded top-left corner
+          borderTopRightRadius: "1rem", // Rounded top-right corner
           zIndex: 50, // Ensure it appears above other elements
         }}
       >

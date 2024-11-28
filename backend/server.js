@@ -19,22 +19,7 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/test-firestore', async (req, res) => {
-  const db = admin.firestore();
-  try {
-      const testSnapshot = await db.collection('recipes').limit(1).get();
-      const testData = testSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log("Test Firestore Data:", testData);
-      res.json(testData);
-  } catch (error) {
-      console.error("Firestore test failed:", error.message);
-      res.status(500).json({ error: "Firestore access failed", details: error.message });
-  }
-});
-
-
-
-// Meal price calculation endpoint
+// Meal price calculation endpoint (ignore this one for now)
 app.get("/meal-price/:recipeId", async (req, res) => {
   const { recipeId } = req.params;
 

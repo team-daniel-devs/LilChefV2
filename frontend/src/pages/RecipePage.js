@@ -1,22 +1,23 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // For navigation and extracting route parameters
 import { db } from "../firebaseconfig";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // Import Firebase Auth for user info
-import ShoppingListPopup from "../components/ShoppingListPopup";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
+import { getAuth } from "firebase/auth"; // Firebase Authentication
+import ShoppingListPopup from "../components/ShoppingListPopup"; // Component for adding ingredients to a shopping list
 
 const RecipePage = () => {
-  const { recipeId } = useParams(); // Get the recipe ID from the URL
-  const navigate = useNavigate();
-  const scrollContainerRef = useRef(null);
-  const [activeTab, setActiveTab] = useState(0);
-  const [recipe, setRecipe] = useState(null);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
+  const navigate = useNavigate(); // Navigate between pages
+  const scrollContainerRef = useRef(null); // Reference for the scroll container
+  const [activeTab, setActiveTab] = useState(0); // Track the active tab (Ingredients, Instructions, Nutrition)
+  const [recipe, setRecipe] = useState(null); // Store the recipe data
+  const [isPopupVisible, setIsPopupVisible] = useState(false); // Toggle shopping list popup visibility
 
-  const tabs = ["Ingredients", "Instructions", "Nutrition"];
-  const auth = getAuth(); // Get Firebase Auth instance
-  const currentUser = auth.currentUser; // Get the current logged-in user
+  const tabs = ["Ingredients", "Instructions", "Nutrition"]; // Define the tab names
+  const auth = getAuth(); // Firebase Auth instance
+  const currentUser = auth.currentUser; // Get the currently logged-in user
 
+  // Fetch the recipe data from Firestore based on `recipeId`
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
@@ -24,11 +25,11 @@ const RecipePage = () => {
         if (recipeDoc.exists()) {
           const recipeData = recipeDoc.data();
 
-          // Parse `ingredients` if it's a JSON string
+          // Parse the `ingredients` field if it's a JSON string
           let ingredients = [];
           try {
             ingredients = recipeData.ingredients
-              ? JSON.parse(recipeData.ingredients.replace(/'/g, '"'))
+              ? JSON.parse(recipeData.ingredients.replace(/'/g, '"')) // Replace single quotes with double quotes
               : [];
           } catch (error) {
             console.error("Error parsing ingredients:", error);
@@ -36,7 +37,7 @@ const RecipePage = () => {
 
           setRecipe({
             ...recipeData,
-            ingredients,
+            ingredients, // Store the parsed ingredients
           });
         } else {
           console.error("Recipe not found");
@@ -47,19 +48,20 @@ const RecipePage = () => {
     };
 
     fetchRecipe();
-  }, [recipeId]);
+  }, [recipeId]); // Re-fetch if `recipeId` changes
 
+  // Save the recipe to the user's saved recipes in Firestore
   const handleSaveRecipe = async () => {
     if (!currentUser) {
       console.error("User not logged in");
       return;
     }
 
-    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's document
 
     try {
       await updateDoc(userDocRef, {
-        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the savedRecipes array
+        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the `savedRecipes` array
       });
       console.log("Recipe saved successfully!");
     } catch (error) {
@@ -67,6 +69,7 @@ const RecipePage = () => {
     }
   };
 
+  // Enable scrolling when the component is mounted, disable when unmounted
   useEffect(() => {
     document.body.style.overflow = "auto";
 
@@ -75,31 +78,34 @@ const RecipePage = () => {
     };
   }, []);
 
+  // Handle scrolling between tabs
   const handleScroll = () => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-    const scrollLeft = scrollContainer.scrollLeft;
-    const width = scrollContainer.offsetWidth;
+    const scrollLeft = scrollContainer.scrollLeft; // Get the horizontal scroll position
+    const width = scrollContainer.offsetWidth; // Get the container width
 
-    const newTab = Math.round(scrollLeft / width);
+    const newTab = Math.round(scrollLeft / width); // Determine the active tab based on scroll position
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
   };
 
+  // Scroll to a specific tab when clicked
   const scrollToTab = (index) => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
       const width = scrollContainer.offsetWidth;
       scrollContainer.scrollTo({
         left: index * width,
-        behavior: "smooth",
+        behavior: "smooth", // Smooth scrolling
       });
     }
-    setActiveTab(index); // Synchronize activeTab state
+    setActiveTab(index); // Update the active tab state
   };
 
+  // Attach and detach scroll event listener for the scroll container
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
@@ -110,6 +116,7 @@ const RecipePage = () => {
     }
   }, [activeTab]);
 
+  // Display a loading message if the recipe is not yet loaded
   if (!recipe) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -121,42 +128,15 @@ const RecipePage = () => {
   // Construct the image path using `image_name`
   const imagePath = recipe.image_name
     ? `/Food Images/${recipe.image_name.toLowerCase().replace(/\s+/g, "-")}.jpg`
-    : "/images/placeholder.jpg";
+    : "/images/placeholder.jpg"; // Fallback image if `image_name` is missing
 
-  // Define content dynamically based on the recipe data
-  const content = [
-    <div className="p-4 text-left">
-      <h3 className="text-lg font-semibold">Ingredients</h3>
-      <ul className="list-disc ml-6">
-        {recipe.ingredients.map((ingredient, index) => (
-          <li key={index} className="text-sm text-gray-600">
-            {ingredient}
-          </li>
-        ))}
-      </ul>
-    </div>,
-    <div className="p-4 text-left">
-      <h3 className="text-lg font-semibold">Instructions</h3>
-      <p className="text-sm text-gray-600">{recipe.instructions || "No instructions available."}</p>
-    </div>,
-    <div className="p-4 text-left">
-      <h3 className="text-lg font-semibold">Nutrition</h3>
-      <ul className="list-disc ml-6">
-        <li className="text-sm text-gray-600">Calories: {recipe.nutrition?.calories || "N/A"}</li>
-        <li className="text-sm text-gray-600">Protein: {recipe.nutrition?.protein || "N/A"}</li>
-        <li className="text-sm text-gray-600">Fat: {recipe.nutrition?.fat || "N/A"}</li>
-        <li className="text-sm text-gray-600">Sugar: {recipe.nutrition?.sugar || "N/A"}</li>
-      </ul>
-    </div>,
-  ];
-
-
+  // Handle adding ingredients to the shopping list
   const handleAddToShoppingList = () => {
-    setIsPopupVisible(true);
+    setIsPopupVisible(true); // Show the popup
   };
 
   const handleClosePopup = () => {
-    setIsPopupVisible(false);
+    setIsPopupVisible(false); // Hide the popup
   };
 
   return (
