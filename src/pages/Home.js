@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import RecipeCard from "../components/RecipeCard";
+import FilterPage from "../components/FilterPage"; // Import the updated FilterPage component
 
 // Sample Recipe Data Array
 const recipes = [
@@ -58,6 +59,8 @@ const recipes = [
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFilterVisible, setIsFilterVisible] = useState(false); // State to show/hide FilterPage
+
   const containerRef = useRef(null);
   const startX = useRef(0); // Starting X position
   const startY = useRef(0); // Starting Y position
@@ -65,8 +68,8 @@ const Home = () => {
   const currentTranslateY = useRef(0); // Current translateY during dragging
 
   const [opacity, setOpacity] = useState(0); // Dynamic opacity based on translation
-  const [text, setText] = useState("")
-  const [color, setColor] = useState(""); 
+  const [text, setText] = useState("");
+  const [color, setColor] = useState("");
 
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX; // Record initial touch X position
@@ -91,15 +94,15 @@ const Home = () => {
     const maxDistance = 100; // Maximum distance for full opacity
     setOpacity(Math.min(Math.abs(currentTranslateX.current) / maxDistance, 1)); // Clamp opacity between 0 and 1
 
-    if(currentTranslateX.current > 0){
+    if (currentTranslateX.current > 0) {
       setText("Save");
       setColor("lime");
     }
-    if(currentTranslateX.current < 0){
+    if (currentTranslateX.current < 0) {
       setText("Discard");
       setColor("red");
     }
-    if(currentTranslateX.current === 0){
+    if (currentTranslateX.current === 0) {
       setText("");
       setColor("");
     }
@@ -134,19 +137,52 @@ const Home = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex justify-center items-center overflow-hidden bg-gray-100"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="recipe-container relative" ref={containerRef}>
+    <div className="min-h-screen flex flex-col items-center overflow-hidden bg-gray-100">
+      {/* Header Section */}
+      <div className="w-full bg-white shadow flex justify-between items-center px-4 py-3">
+        <button
+          className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow"
+          onClick={() => setIsFilterVisible(true)} // Show the FilterPage
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="white"
+            className="w-5 h-5 mr-2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+          </svg>
+          Sort
+        </button>
+      </div>
+
+      {/* Recipe Card Section */}
+      <div
+        className="recipe-container relative mt-2"
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
           <div className="recipe-card" key={recipe.id}>
-            <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color}/>
+            <RecipeCard
+              recipe={recipe}
+              opacity={opacity}
+              text={text}
+              color={color}
+            />
           </div>
         ))}
       </div>
+
+      {/* Filter Page */}
+      <FilterPage
+        isVisible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)} // Close the FilterPage
+      />
     </div>
   );
 };

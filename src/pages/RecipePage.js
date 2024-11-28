@@ -1,7 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useRef, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AddToShoppingList from "../components/AddToShoppingList";
 
 const RecipePage = () => {
+  const [isShoppingListVisible, setIsShoppingListVisible] = useState(false);
 
   useEffect(() => {
     // Enable scrolling for this page
@@ -17,7 +19,7 @@ const RecipePage = () => {
   const scrollContainerRef = useRef(null);
   const [activeTab, setActiveTab] = useState(0);
 
-  const tabs = ['Ingredients', 'Instructions', 'Nutrition'];
+  const tabs = ["Ingredients", "Instructions", "Nutrition"];
   const content = [
     <div className="p-4">Ingredients content here...</div>,
     <div className="p-4">Instructions content here...</div>,
@@ -44,7 +46,7 @@ const RecipePage = () => {
       const width = scrollContainer.offsetWidth;
       scrollContainer.scrollTo({
         left: index * width,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
@@ -52,9 +54,9 @@ const RecipePage = () => {
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
+      scrollContainer.addEventListener("scroll", handleScroll);
       return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
+        scrollContainer.removeEventListener("scroll", handleScroll);
       };
     }
   }, [activeTab]);
@@ -63,7 +65,9 @@ const RecipePage = () => {
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center p-4">
-        <button onClick={() => navigate(-1)} className="text-gray-700 text-lg">←</button>
+        <button onClick={() => navigate(-1)} className="text-gray-700 text-lg">
+          ←
+        </button>
         <h1 className="mx-auto font-bold text-lg">Recipe</h1>
         <button className="text-green-500 text-lg">✓</button>
       </div>
@@ -94,8 +98,8 @@ const RecipePage = () => {
               key={tab}
               className={`text-sm ${
                 activeTab === index
-                  ? 'text-green-500 border-b-2 border-green-500'
-                  : 'text-gray-500'
+                  ? "text-green-500 border-b-2 border-green-500"
+                  : "text-gray-500"
               }`}
               onClick={() => scrollToTab(index)}
             >
@@ -120,6 +124,20 @@ const RecipePage = () => {
           ))}
         </div>
       </div>
+
+      {/* Add to Shopping List Button */}
+      <button
+        onClick={() => setIsShoppingListVisible(true)}
+        className="w-full py-3 bg-green-500 text-white text-lg font-bold rounded-lg"
+      >
+        Add to Shopping List
+      </button>
+
+      {/* AddToShoppingList Popup */}
+      <AddToShoppingList
+        isVisible={isShoppingListVisible}
+        onClose={() => setIsShoppingListVisible(false)}
+      />
     </div>
   );
 };

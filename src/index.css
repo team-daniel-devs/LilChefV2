@@ -50,7 +50,6 @@ html {
   -webkit-user-select: none;
 }
 
-/* Style for the overall container */
 .recipe-container {
   display: flex;
   justify-content: center;
@@ -58,8 +57,10 @@ html {
   width: 100%;
   overflow: hidden;
   position: relative;
-  height: 100vh; /* Full screen height */
+  height: calc(100vh - 150px); /* Full height minus header height (adjust as needed) */
+  padding: 20px; /* Add some spacing to avoid cards touching the edges */
 }
+
 
 /* Style for each card */
 .recipe-card {
