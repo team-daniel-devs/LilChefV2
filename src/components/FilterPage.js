@@ -14,7 +14,6 @@ const FilterPage = ({ isVisible, onClose }) => {
   };
 
   const handleApplyFilter = () => {
-    // Apply filter logic here (e.g., save selected filters)
     console.log({
       selectedCookingTimes,
       selectedDifficulties,
@@ -25,11 +24,19 @@ const FilterPage = ({ isVisible, onClose }) => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 h-[80%] bg-white rounded-t-2xl shadow-lg z-50 transition-transform duration-300 ${
+      className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg z-50 transition-transform duration-300 ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
+      style={{
+        height: "80%", // Adjust as needed
+      }}
     >
-      <div className="p-6 h-full overflow-y-auto">
+      <div
+        className="p-6 h-full overflow-y-auto pb-[calc(64px+16px)]"
+        style={{
+          paddingTop: "24px", // Add extra whitespace at the top
+        }}
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-bold">Filter your search</h1>
@@ -40,6 +47,9 @@ const FilterPage = ({ isVisible, onClose }) => {
             ✕
           </button>
         </div>
+
+        {/* Add extra space at the start */}
+        <div className="h-4"></div> {/* White space at the top */}
 
         {/* Content */}
         <div className="space-y-6">
@@ -117,36 +127,23 @@ const FilterPage = ({ isVisible, onClose }) => {
               </span>
             </h2>
             <div className="flex flex-wrap gap-2 mt-3">
-              {[
-                "Tomato",
-                "Eggs",
-                "Beef",
-                "Onion",
-                "Chicken",
-                "Salmon",
-                "Bread",
-                "Banana",
-                "Cheese",
-                "Cabbage",
-                "Lettuce",
-                "Tofu",
-              ].map((ingredient) => (
+              {[...Array(12).keys()].map((i) => (
                 <button
-                  key={ingredient}
+                  key={i}
                   onClick={() =>
                     toggleSelection(
-                      ingredient,
+                      `Ingredient ${i}`,
                       selectedIngredients,
                       setSelectedIngredients
                     )
                   }
                   className={`px-4 py-2 rounded-full border border-gray-300 ${
-                    selectedIngredients.includes(ingredient)
+                    selectedIngredients.includes(`Ingredient ${i}`)
                       ? "bg-green-500 text-white"
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {ingredient}
+                  {`Ingredient ${i}`}
                 </button>
               ))}
             </div>
@@ -160,6 +157,9 @@ const FilterPage = ({ isVisible, onClose }) => {
             Apply Filter
           </button>
         </div>
+
+        {/* Add extra space at the end */}
+        <div className="h-16"></div> {/* White space at the bottom */}
       </div>
     </div>
   );
