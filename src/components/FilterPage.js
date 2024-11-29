@@ -24,11 +24,11 @@ const FilterPage = ({ isVisible, onClose }) => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg z-50 transition-transform duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg z-50 transition-transform duration-300 ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
       style={{
-        height: "80%", // Adjust as needed
+        height: "80%", // Adjust this to control how much screen space it takes
       }}
     >
       <div
@@ -47,9 +47,6 @@ const FilterPage = ({ isVisible, onClose }) => {
             ✕
           </button>
         </div>
-
-        {/* Add extra space at the start */}
-        <div className="h-4"></div> {/* White space at the top */}
 
         {/* Content */}
         <div className="space-y-6">

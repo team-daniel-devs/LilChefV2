@@ -49,9 +49,9 @@ const Navbar = () => {
       </Link>
 
       <Link
-        to="/settings"
+        to="/grocery"
         className={`flex flex-col items-center w-20 ${
-          location.pathname === '/settings' ? 'text-cyan-400' : 'text-gray-600'
+          location.pathname === '/grocery' ? 'text-cyan-400' : 'text-gray-600'
         }`}
       >
         <span className="text-lg">🛒</span>
