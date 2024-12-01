@@ -16,7 +16,7 @@ const Mobile = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-16 mt-40 flex flex-col items-center">
+      <div className="relative z-10 text-center text-white px-16 flex flex-col items-center">
         <h1 className="text-2xl font-semibold leading-snug">
           A gourmet chef, right <br></br>in your pocket.
         </h1>
@@ -31,7 +31,7 @@ const Mobile = () => {
             placeholder="Enter your email..."
             className="flex-grow px-4 py-2 text-black focus:outline-none"
           />
-          <button className="bg-[#129b62] text-white px-4 py-2 font-semibold">
+          <button className="bg-[#129b62] border-2 border-white rounded text-white px-4 py-2 font-semibold">
             Submit
           </button>
         </div>
