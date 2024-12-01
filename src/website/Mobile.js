@@ -41,7 +41,7 @@ const Mobile = () => {
         {/* Dynamic Subtext */}
         <p className="mt-2 text-base">
           {submitted
-            ? "Great! We just sent you an email!"
+            ? "Great! You'll hear from us soon!"
             : "Sign up to be a beta tester, and we’ll email you the next steps."}
         </p>
 

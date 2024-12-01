@@ -50,7 +50,7 @@ const Desktop = () => {
         {/* Dynamic Subtext */}
         <p className="text-lg mb-6 text-left">
           {submitted
-            ? "Great! We just sent you an email!"
+            ? "Great! You'll hear from us soon!"
             : "Sign up to be a beta tester, and we’ll email you the next steps."}
         </p>
 
