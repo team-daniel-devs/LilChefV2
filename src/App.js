@@ -7,81 +7,63 @@ import RecipePage from './pages/RecipePage';
 import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
 import Grocery from './pages/Grocery';
+import Desktop from './website/Desktop'; // Import the Desktop component
+import Mobile from './website/Mobile'; // Import the Mobile component
 
 const App = () => {
-  const [showApp, setShowApp] = useState(true);
-  const [message, setMessage] = useState('');
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Detect if the device is a desktop
-    if (window.innerWidth > 1024) {
-      setShowApp(false);
-      setMessage('Please use your phone to access this app.');
-      return;
-    }
-
-    // Detect if the app is not opened from the home screen
-    const isStandalone =
-      window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-      // Making sure ur on the app (commented otu for dev purposes)
-    // if (!isStandalone) {
-    //   setShowApp(false);
-    //   setMessage('Please add this app to your home screen for the best experience.');
-    //   return;
-    // }
-
-    // Detect if the app is in landscape mode
-    const handleOrientationChange = () => {
-      if (window.matchMedia('(orientation: landscape)').matches) {
-        setShowApp(false);
-        setMessage('Please rotate your device to portrait mode.');
-      } else {
-        setShowApp(true);
-        setMessage('');
-      }
+    const handleResize = () => {
+      // Check if the device is a desktop
+      setIsDesktop(window.innerWidth > 1024);
     };
 
-    handleOrientationChange(); // Check on load
-    window.addEventListener('resize', handleOrientationChange);
+    const checkStandaloneMode = () => {
+      // Check if the app is running in standalone mode
+      const isStandaloneMode =
+        window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      setIsStandalone(isStandaloneMode);
+    };
+
+    // Run checks on load
+    handleResize();
+    checkStandaloneMode();
+
+    // Add resize event listener
+    window.addEventListener('resize', handleResize);
+
     return () => {
-      window.removeEventListener('resize', handleOrientationChange);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  if (!showApp) {
+  if (isDesktop) {
+    return <Desktop />; // Render the Desktop component for desktop screens
+  }
+
+  if (!isDesktop && isStandalone) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          textAlign: 'center',
-        }}
-      >
-        <p>{message}</p>
-      </div>
+      <Router>
+        <div style={{ paddingBottom: '60px' }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/saved" element={<Saved />} />
+            <Route path="/recipepage" element={<RecipePage />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/grocery" element={<Grocery />} />
+          </Routes>
+
+          {/* Conditionally render the Taskbar */}
+          <ConditionalTaskbar />
+        </div>
+      </Router>
     );
   }
 
-  return (
-    <Router>
-      <div style={{ paddingBottom: '60px' }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/saved" element={<Saved />} />
-          <Route path="/recipepage" element={<RecipePage />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/grocery" element={<Grocery />} />
-        </Routes>
-
-        {/* Conditionally render the Taskbar */}
-        <ConditionalTaskbar />
-      </div>
-    </Router>
-  );
+  return <Mobile />; // Render the Mobile component for mobile browsers
 };
 
 const ConditionalTaskbar = () => {
