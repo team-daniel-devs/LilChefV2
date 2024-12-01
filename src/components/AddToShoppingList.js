@@ -2,15 +2,21 @@ import React, { useState } from "react";
 
 const AddToShoppingList = ({ isVisible, onClose }) => {
   const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const placeholderIngredients = [
-    { name: "6 medium zucchinis", img: "https://via.placeholder.com/50" },
-    { name: "600g of ground chicken", img: "https://via.placeholder.com/50" },
-    { name: "1 potato", img: "https://via.placeholder.com/50" },
-    { name: "1 onion", img: "https://via.placeholder.com/50" },
-    { name: "1 bell pepper", img: "https://via.placeholder.com/50" },
-    { name: "2 cloves of garlic", img: "https://via.placeholder.com/50" },
-    { name: "300g of shredded cheese", img: "https://via.placeholder.com/50" },
+  
+  const vegetableStirFryIngredients = [
+    { name: "Zucchinis (2 medium)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSikJWQimooxt4bMqJeClIKPw41PZkDPS4KMQ&s" },
+    { name: "Cooked Quinoa (1 cup)", img: "https://cdn.loveandlemons.com/wp-content/uploads/2019/09/quinoa.jpg" },
+    { name: "Shredded Mozzarella Cheese (1/2 cup)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zGX_k_WVybeYieYF_xDuDjvk_ihkx72bJA&s" },
+    { name: "Grated Parmesan Cheese (1/4 cup)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS37XjmaCJtQq1v1iacYPLmj2j4Z_Ph_EUCTQ&s" },
+    { name: "Small Onion (1, finely chopped)", img: "https://m.media-amazon.com/images/I/81fS9-IMIFL._AC_UF894,1000_QL80_.jpg" },
+    { name: "Garlic Cloves (2, minced)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3eyhNI3iWPcX3kZg-FpE4cz_KvTb2vm_G8A&s" },
+    { name: "Marinara Sauce (1 cup)", img: "https://www.allrecipes.com/thmb/4X86LzlzRXty6zbIzo2zDZZ6Ugc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/11966-best-marinara-sauce-yet-DDMFS-4x3-078e494b66c4485e8efe0971473b3196.jpg" },
+    { name: "Olive Oil (1 tbsp)", img: "https://health.ucdavis.edu/media-resources/contenthub/post/internet/good-food/2024/04/images-body/olive-oil-health-benefits.jpg" },
+    { name: "Dried Oregano (1/2 tsp)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_VYFwM5h9E1CDwQZGe7eZFPYRvbHL44MRzw&s" },
+    { name: "Salt and Pepper (to taste)", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8ErCqSZYBG36Y7CwuY0lchBg_NsfepHkdKA&s" },
   ];
+  
+
 
   const toggleIngredient = (ingredient) => {
     if (selectedIngredients.includes(ingredient)) {
@@ -47,12 +53,12 @@ const AddToShoppingList = ({ isVisible, onClose }) => {
 
         {/* Recipe Info */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Stuffed Zucchinis</h2>
+          <h2 className="text-lg font-semibold">Vegetable Stir-Fry</h2>
           <div className="flex items-center">
             <span className="text-sm text-gray-700 mr-2">Servings:</span>
             <input
               type="number"
-              defaultValue={3}
+              defaultValue={4}
               className="w-12 border border-gray-300 rounded-md text-center"
             />
           </div>
@@ -65,19 +71,19 @@ const AddToShoppingList = ({ isVisible, onClose }) => {
             className="text-sm text-green-500 font-medium"
             onClick={() =>
               setSelectedIngredients(
-                selectedIngredients.length === placeholderIngredients.length
+                selectedIngredients.length === vegetableStirFryIngredients.length
                   ? []
-                  : placeholderIngredients.map((item) => item.name)
+                  : vegetableStirFryIngredients.map((item) => item.name)
               )
             }
           >
-            {selectedIngredients.length === placeholderIngredients.length
+            {selectedIngredients.length === vegetableStirFryIngredients.length
               ? "Unselect All"
               : "Select All"}
           </button>
         </h3>
         <div className="flex-grow overflow-y-auto">
-          {placeholderIngredients.map((ingredient) => (
+          {vegetableStirFryIngredients.map((ingredient) => (
             <div
               key={ingredient.name}
               className="flex items-center mb-4 border-b border-gray-200 pb-2 cursor-pointer"

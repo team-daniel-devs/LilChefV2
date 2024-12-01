@@ -15,20 +15,14 @@ const Saved = () => {
   }, []);
 
   const recipes = [
-    { title: "Loaded Nachos", likes: 300, image: "https://via.placeholder.com/300" },
-    { title: "Beef Stroganoff", likes: 575, image: "https://via.placeholder.com/300" },
-    { title: "Stuffed Zucchini", likes: 650, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    { title: "Grilled Chicken", likes: 700, image: "https://via.placeholder.com/300" },
-    // Add more recipes as needed
-  ];
+    { title: "Vegetable Stir-Fry", likes: 350, image: "https://www.wholesomeyum.com/wp-content/uploads/2020/11/wholesomeyum-Stir-Fry-Vegetables-15.jpg" },
+    { title: "Chocolate Chip Cookies", likes: 200, image: "https://sallysbakingaddiction.com/wp-content/uploads/2013/05/classic-chocolate-chip-cookies.jpg" },
+    { title: "Grilled Cheese Sandwich", likes: 150, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAFVPpn2AEspRJR8iX_C5H_Hm63rrsoHm3BA&s" },
+    { title: "Beef Tacos", likes: 450, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReBnQ776pnJJPUuO-soQzNdTPcfn1UhBOPYw&s" },
+    { title: "Avocado Toast", likes: 250, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqWUXBtxAtDkBIoTftl0731SAGDdfNV9_X3A&s" },
+    { title: "Spaghetti Bolognese", likes: 500, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA_EF-1qMDLEoJA2sJ9S0rbE8qgw1ffJK3Bw&s" },
+  ];  
+  
 
   return (
     <div className="min-h-screen p-4">

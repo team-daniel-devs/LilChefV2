@@ -1,19 +1,29 @@
 import React from "react";
 
-const RecipeCard = ({ recipe, opacity, text, color}) => {
+const RecipeCard = ({ recipe, opacity, text, color }) => {
   return (
     <div className="relative max-w-md mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200">
-      {/* Image Placeholder */}
-      <div className="h-48 w-full bg-gray-300 flex items-center justify-center">
-        {/* Placeholder for the image */}
-        <span className="text-gray-500">Image Placeholder</span>
+      {/* Image Section */}
+      <div className="h-48 w-full bg-gray-300 flex items-center justify-center overflow-hidden">
+        {recipe.image ? (
+          <img
+            src={recipe.image}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-gray-500">Image Placeholder</span>
+        )}
       </div>
 
       {/* Content Section */}
       <div className="p-4">
         {/* Title Section */}
         <div className="text-gray-600 text-sm flex items-center gap-1 mb-2">
-          <span>⏱</span> <span>{recipe.prepTime} prep, {recipe.cookTime} cook</span>
+          <span>⏱</span>{" "}
+          <span>
+            {recipe.prepTime} prep, {recipe.cookTime} cook
+          </span>
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">{recipe.title}</h2>
 
@@ -82,7 +92,7 @@ const RecipeCard = ({ recipe, opacity, text, color}) => {
           border: `2px solid ${color}`,
           boxShadow: `0 0 10px 5px ${color}`, // Creates the glowing effect
         }}
-      >        
+      >
         {text}
       </div>
     </div>

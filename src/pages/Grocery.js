@@ -5,39 +5,25 @@ const Grocery = () => {
   const [recipes, setRecipes] = useState([
     {
       id: 1,
-      title: "Stuffed Zucchini",
-      image: "/mnt/data/Stuffed Zucchini.png",
-    },
-    {
-      id: 2,
-      title: "Chicken Alfredo",
-      image: "https://via.placeholder.com/150?text=Chicken+Alfredo",
-    },
-    {
-      id: 3,
-      title: "Beef Tacos",
-      image: "https://via.placeholder.com/150?text=Beef+Tacos",
-    },
-    {
-      id: 4,
-      title: "Caesar Salad",
-      image: "https://via.placeholder.com/150?text=Caesar+Salad",
+      title: "Vegetable Stir-Fry",
+      image: "https://www.wholesomeyum.com/wp-content/uploads/2020/11/wholesomeyum-Stir-Fry-Vegetables-15.jpg",
     },
   ]);
 
-  const [servings, setServings] = useState(3);
+  const [servings, setServings] = useState(4);
   const [ingredients, setIngredients] = useState([
-    { id: 1, name: "6 medium zucchinis", image: "https://via.placeholder.com/50", checked: false },
-    { id: 2, name: "600g of ground chicken", image: "https://via.placeholder.com/50", checked: false },
-    { id: 3, name: "1 potato", image: "https://via.placeholder.com/50", checked: false },
-    { id: 4, name: "1 onion", image: "https://via.placeholder.com/50", checked: false },
-    { id: 5, name: "1 bell pepper", image: "https://via.placeholder.com/50", checked: false },
-    { id: 6, name: "1 garlic clove", image: "https://via.placeholder.com/50", checked: false },
-    { id: 7, name: "Salt to taste", image: "https://via.placeholder.com/50", checked: false },
-    { id: 8, name: "Pepper to taste", image: "https://via.placeholder.com/50", checked: false },
-    { id: 9, name: "Olive oil", image: "https://via.placeholder.com/50", checked: false },
-    { id: 10, name: "Grated cheese", image: "https://via.placeholder.com/50", checked: false },
+    { id: 1, name: "Zucchinis (2 medium)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSikJWQimooxt4bMqJeClIKPw41PZkDPS4KMQ&s", checked: false },
+    { id: 2, name: "Cooked Quinoa (1 cup)", image: "https://cdn.loveandlemons.com/wp-content/uploads/2019/09/quinoa.jpg", checked: false },
+    { id: 3, name: "Shredded Mozzarella Cheese (1/2 cup)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zGX_k_WVybeYieYF_xDuDjvk_ihkx72bJA&s", checked: false },
+    { id: 4, name: "Grated Parmesan Cheese (1/4 cup)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS37XjmaCJtQq1v1iacYPLmj2j4Z_Ph_EUCTQ&s", checked: false },
+    { id: 5, name: "Small Onion (1, finely chopped)", image: "https://m.media-amazon.com/images/I/81fS9-IMIFL._AC_UF894,1000_QL80_.jpg", checked: false },
+    { id: 6, name: "Garlic Cloves (2, minced)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3eyhNI3iWPcX3kZg-FpE4cz_KvTb2vm_G8A&s", checked: false },
+    { id: 7, name: "Marinara Sauce (1 cup)", image: "https://www.allrecipes.com/thmb/4X86LzlzRXty6zbIzo2zDZZ6Ugc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/11966-best-marinara-sauce-yet-DDMFS-4x3-078e494b66c4485e8efe0971473b3196.jpg", checked: false },
+    { id: 8, name: "Olive Oil (1 tbsp)", image: "https://health.ucdavis.edu/media-resources/contenthub/post/internet/good-food/2024/04/images-body/olive-oil-health-benefits.jpg", checked: false },
+    { id: 9, name: "Dried Oregano (1/2 tsp)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_VYFwM5h9E1CDwQZGe7eZFPYRvbHL44MRzw&s", checked: false },
+    { id: 10, name: "Salt and Pepper (to taste)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8ErCqSZYBG36Y7CwuY0lchBg_NsfepHkdKA&s", checked: false },
   ]);
+  
 
   const toggleChecked = (id) => {
     setIngredients((prev) =>
@@ -60,19 +46,19 @@ const Grocery = () => {
 
       {/* Recipe List */}
       <div className="p-4">
-        <p className="text-lg font-medium mb-2">{recipes.length} recipes</p>
+        <p className="text-lg font-medium mb-2">{recipes.length} recipe</p>
         <div className="flex space-x-4 overflow-x-auto">
           {recipes.map((recipe) => (
-            <div className="flex-shrink-0">
-              <GroceryRecipe key={recipe.id} title={recipe.title} image={recipe.image} />
+            <div className="flex-shrink-0" key={recipe.id}>
+              <GroceryRecipe title={recipe.title} image={recipe.image} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* "10 Items" Text */}
+      {/* "Items" Text */}
       <div className="px-4 mt-4">
-        <h3 className="text-lg font-medium mb-2">10 items</h3>
+        <h3 className="text-lg font-medium mb-2">{ingredients.length} items</h3>
       </div>
 
       {/* Scrollable Items List */}

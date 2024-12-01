@@ -21,9 +21,61 @@ const RecipePage = () => {
 
   const tabs = ["Ingredients", "Instructions", "Nutrition"];
   const content = [
-    <div className="p-4">Ingredients content here...</div>,
-    <div className="p-4">Instructions content here...</div>,
-    <div className="p-4">Nutrition content here...</div>,
+    <div className="p-4 max-w-full overflow-hidden">
+      <p className="font-bold">Main Ingredients:</p>
+      <div>• 2 medium zucchinis</div>
+      <div>• 1 cup cooked quinoa</div>
+      <div>• 1/2 cup shredded mozzarella cheese</div>
+      <div>• 1/4 cup grated Parmesan cheese</div>
+      <div>• 1 small onion, finely chopped</div>
+      <div>• 2 garlic cloves, minced</div>
+      <div>• 1 cup marinara sauce</div>
+      <div>• 1 tbsp olive oil</div>
+      <div>• 1/2 tsp dried oregano</div>
+      <div>• Salt and pepper to taste</div>
+    </div>,
+    <div className="p-4 max-w-full overflow-hidden">
+      <p className="font-bold">Instructions:</p>
+      <div>
+        <div>1. Preheat your oven to 375°F (190°C).</div>
+        <div>Line a baking dish with parchment paper.</div>
+      </div>
+      <div>
+        <div>2. Cut the zucchinis in half lengthwise.</div>
+        <div>Scoop out the centers to create "boats."</div>
+      </div>
+      <div>
+        <div>3. Heat olive oil in a skillet over medium heat.</div>
+        <div>Add onion and garlic, sautéing until softened.</div>
+      </div>
+      <div>
+        <div>4. Stir in the cooked quinoa, marinara sauce,</div>
+        <div>oregano, salt, and pepper. Cook for 2-3 minutes.</div>
+      </div>
+      <div>
+        <div>5. Spoon the quinoa mixture into the zucchini boats.</div>
+        <div>Top with mozzarella and Parmesan cheese.</div>
+      </div>
+      <div>
+        <div>6. Place the stuffed zucchinis on the baking dish.</div>
+        <div>Bake for 20-25 minutes or until tender.</div>
+      </div>
+      <div>
+        <div>7. Remove from oven and let cool for 5 minutes.</div>
+        <div>Serve and enjoy!</div>
+      </div>
+    </div>,
+    <div className="p-4 max-w-full overflow-hidden">
+      <p className="font-bold">Nutrition Information (Per Serving):</p>
+      <div>• Calories: 300</div>
+      <div>• Protein: 12g</div>
+      <div>• Carbohydrates: 25g</div>
+      <div>• Fiber: 5g</div>
+      <div>• Fat: 15g</div>
+      <div>• Saturated Fat: 5g</div>
+      <div>• Cholesterol: 20mg</div>
+      <div>• Sodium: 400mg</div>
+    </div>,
   ];
 
   const handleScroll = () => {
@@ -75,7 +127,7 @@ const RecipePage = () => {
       {/* Image */}
       <div className="w-full">
         <img
-          src="https://via.placeholder.com/600x400" // Replace with actual image URL
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiphrNcjfvL_UgvwWdgU6GdmJzN-6qV7MleA&s"
           alt="Recipe"
           className="w-full object-cover"
         />

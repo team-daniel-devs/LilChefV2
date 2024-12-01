@@ -73,3 +73,9 @@ html {
   transform: translateX(0px); /* Default position */
   transition: transform 0.3s ease;
 }
+
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
