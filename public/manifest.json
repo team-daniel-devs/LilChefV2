@@ -1,14 +1,14 @@
 {
-  "short_name": "MyApp",
-  "name": "My React PWA",
+  "short_name": "Lil'Chef",
+  "name": "Lil'Chef",
   "icons": [
     {
-      "src": "icon-192x192.png",
+      "src": "logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
