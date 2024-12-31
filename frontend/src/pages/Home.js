@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // For animations
+import React, { useState, useEffect, useRef } from "react";
 import RecipeCard from "../components/RecipeCard"; // RecipeCard component to display recipe details
 import { collection, getDocs } from "firebase/firestore"; // Firestore functions
 import { db } from "../firebaseconfig"; // Firebase configuration
 import { Link } from "react-router-dom"; // For navigation
 
+
 const Home = () => {
   const [recipes, setRecipes] = useState([]); // Stores the list of recipes fetched from Firestore
+  
   const [currentIndex, setCurrentIndex] = useState(0); // Tracks the index of the currently displayed recipe
-  const [rotation, setRotation] = useState(0); // Tracks the rotation angle of the top recipe card
+  const containerRef = useRef(null);
+  const startX = useRef(0);  // Starting X position
+  const startY = useRef(0);  // Starting Y position
+  const currentTranslateX = useRef(0);  // Current translateX during dragging
+  const currentTranslateY = useRef(0);  // Current translateY during dragging
+
+  const [opacity, setOpacity] = useState(0); // Dynamic opacity based on translation
+  const [text, setText] = useState(""); // Swipe action text
+  const [color, setColor] = useState(""); // Swipe action color
 
   // Fetch recipes from Firestore on component mount
   useEffect(() => {
@@ -60,73 +69,87 @@ const Home = () => {
     fetchRecipes(); // Call the function to fetch recipes
   }, []); // Empty dependency array ensures this runs only once
 
-  // Handles swipe gestures (left or right) to update the current index
-  const handleSwipe = (direction) => {
-    if (direction === "left" || direction === "right") {
-      setCurrentIndex((prevIndex) =>
-        prevIndex === recipes.length - 1 ? 0 : prevIndex + 1 // Loop back to the start when reaching the end
-      );
-      setRotation(0); // Reset rotation after the swipe
+  // Swipe handlers
+  const handleTouchStart = (e) => {
+    startX.current = e.touches[0].clientX; // Record initial touch X position
+    startY.current = e.touches[0].clientY; // Record initial touch Y position
+    containerRef.current.style.transition = "none"; // Disable transition during dragging
+  };
+
+  const handleTouchMove = (e) => {
+    const deltaX = e.touches[0].clientX - startX.current;  // Distance moved horizontally
+    const deltaY = e.touches[0].clientY - startY.current; // Distance moved vertically
+
+
+    currentTranslateX.current += deltaX; // Update translateX
+    currentTranslateY.current += deltaY; // Update translateY
+
+    // Apply the current translation to the card
+    containerRef.current.style.transform = `
+      translate(${currentTranslateX.current}px, ${currentTranslateY.current}px)
+      rotate(${currentTranslateX.current / 20}deg)
+    `;
+
+    // Calculate opacity based on horizontal drag distance
+    const maxDistance = 100; // Maximum distance for full opacity
+    setOpacity(Math.min(Math.abs(currentTranslateX.current) / maxDistance, 1)); // Clamp opacity between 0 and 1
+
+    if (currentTranslateX.current > 0) {
+      setText("Save");
+      setColor("lime");
+    } else if (currentTranslateX.current < 0) {
+      setText("Discard");
+      setColor("red");
+    } else {
+      setText("");
+      setColor("");
     }
+
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = () => {
+     // Check if the card was swiped far enough
+     if (currentTranslateX.current > 100) {
+      // Swipe right
+      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
+    } else if (currentTranslateX.current < -100) {
+      // Swipe left
+      setCurrentIndex((prev) => (prev + 1) % recipes.length);
+    }
+
+    // Reset translate values
+    currentTranslateX.current = 0;
+    currentTranslateY.current = 0;
+
+    // Smoothly reset card position
+    containerRef.current.style.transition = "transform 0.3s ease";
+    containerRef.current.style.transform = "translate(0px, 0px) rotate(0deg)";
+
+    // Reset opacity after swipe ends
+    setOpacity(0);
+    setText("");
+    setColor("");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center overflow-hidden">
-      {/* Header Section */}
-      <header className="w-full py-4 flex justify-center items-center bg-white shadow">
-        {/* Logo */}
-        <img src="/images/logo.png" alt="Logo" className="h-8" />
-      </header>
-
-      {/* Main Content Section */}
-      <main className="flex-1 w-full px-6 flex justify-center items-center relative mt-4">
-        <AnimatePresence>
-          {/* Display the top two recipe cards */}
-          {recipes.slice(currentIndex, currentIndex + 2).map((recipe, index) => (
-            <motion.div
-              key={recipe.id} // Unique key for each card
-              className={`absolute w-full max-w-md ${
-                index === 0 ? "z-10" : "z-0"
-              } p-4`} // Front card has higher z-index
-              drag={index === 0 ? "x" : false} // Only allow drag for the top card
-              dragConstraints={{ left: 0, right: 0 }} // Limit drag movement to horizontal axis
-              initial={{
-                x: 0,
-                scale: index === 0 ? 1 : 0.95, // Scale the background card slightly smaller
-                rotate: 0,
-              }}
-              animate={{
-                x: 0,
-                scale: index === 0 ? 1 : 0.95,
-                rotate: index === 0 ? rotation : 0, // Apply rotation only to the top card
-              }}
-              exit={{
-                x: index === 0 ? (Math.random() > 0.5 ? 300 : -300) : 0, // Swipe out the top card
-                rotate: 0, // Reset rotation
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }} // Smooth spring animation
-              onDrag={(event, info) => {
-                if (index === 0) {
-                  const dragRotation = info.offset.x / 10; // Adjust rotation sensitivity
-                  setRotation(dragRotation); // Update rotation state
-                }
-              }}
-              onDragEnd={(event, info) => {
-                if (index === 0 && (info.offset.x > 150 || info.offset.x < -150)) {
-                  handleSwipe(info.offset.x > 0 ? "right" : "left"); // Swipe if dragged far enough
-                } else {
-                  setRotation(0); // Reset rotation if swipe is incomplete
-                }
-              }}
-            >
-              {/* Link to the detailed recipe page */}
-              <Link to={`/recipepage/${recipe.id}`}>
-                <RecipeCard recipe={recipe} /> {/* Display recipe details */}
-              </Link>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </main>
+    <div
+      className="min-h-screen bg-gray-100 flex justify-center items-center overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="recipe-container relative" ref={containerRef}>
+        {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
+          <div className="recipe-card" key={recipe.id}>
+            {/* Link to the detailed recipe page */}
+            <Link to={`/recipepage/${recipe.id}`}>
+              <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color} />
+            </Link>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
