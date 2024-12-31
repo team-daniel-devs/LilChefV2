@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"; // For navigation and
 import { db } from "../firebaseconfig";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
 import { getAuth } from "firebase/auth"; // Firebase Authentication
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import ShoppingListPopup from "../components/ShoppingListPopup"; // Component for adding ingredients to a shopping list
 
 const RecipePage = () => {
@@ -12,9 +13,11 @@ const RecipePage = () => {
   const [activeTab, setActiveTab] = useState(0); // Track the active tab (Ingredients, Instructions, Nutrition)
   const [recipe, setRecipe] = useState(null); // Store the recipe data
   const [isPopupVisible, setIsPopupVisible] = useState(false); // Toggle shopping list popup visibility
+  const [imageUrl, setImageUrl] = useState(null); // State to store the Firebase image URL
 
   const tabs = ["Ingredients", "Instructions", "Nutrition"]; // Define the tab names
   const auth = getAuth(); // Firebase Auth instance
+  const storage = getStorage(); // Firebase Storage instance
   const currentUser = auth.currentUser; // Get the currently logged-in user
 
   // Fetch the recipe data from Firestore based on `recipeId`
@@ -39,6 +42,26 @@ const RecipePage = () => {
             ...recipeData,
             ingredients, // Store the parsed ingredients
           });
+
+          // Fetch the recipe image from Firebase
+          if (recipeData.image_name) {
+            const normalizedImageName = `${recipeData.image_name
+              .toLowerCase()
+              .replace(/\s+/g, "-")}.jpg`;
+
+            try {
+              const imageRef = ref(
+                storage,
+                `Recipe_Pictures/${normalizedImageName}`
+              );
+              const url = await getDownloadURL(imageRef);
+              setImageUrl(url);
+            } catch (error) {
+              console.error("Error fetching image from Firebase:", error);
+              setImageUrl("/images/placeholder.jpg"); // Fallback image
+            }
+          }
+          
         } else {
           console.error("Recipe not found");
         }
@@ -144,7 +167,7 @@ const RecipePage = () => {
       {/* Image Section */}
       <div className="relative">
         <img
-          src={imagePath}
+          src={imageUrl || "/image/placeholder.jpg"}
           alt={recipe.title || "Recipe Image"}
           className="w-full h-64 object-cover"
         />

@@ -30,3 +30,4 @@ if (!getApps().length) {
 // Export Firebase Authentication and Firestore
 export const auth = getAuth();
 export const db = getFirestore();
+

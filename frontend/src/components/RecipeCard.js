@@ -1,32 +1,69 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 
 // A functional component to render a recipe card
 const RecipeCard = ({ recipe }) => {
+  const [imageUrl, setImageUrl] = useState(null); // State to store the Firebase image URL
+  const storage = getStorage(); // Firebase Storage instance
+
   // Helper function to normalize the image name (because the image names have dashes instead of spaces and i  the db we have spaces and not dashes)
   const getNormalizedImageName = (imageName) => {
-    if (!imageName) return null; // If no image name is provided, return null
-    return `${imageName.toLowerCase().replace(/\s+/g, "-")}.jpg`; // Convert spaces to dashes and append .jpg
+    if (!imageName) return null; // Return null if no image name is provided
+  
+    // Normalize the image name: trim spaces, remove leading dashes, and replace spaces with dashes
+    return imageName
+      .toLowerCase()
+      .trim()
+      .replace(/^\s*-+/, "") // Remove leading dashes
+      .replace(/\s+/g, "-") + ".jpg"; // Replace spaces with dashes and add extension
   };
+  
 
-  // Call the helper function to normalize the image name
-  const normalizedImageName = getNormalizedImageName(recipe.imageName);
+  useEffect(() => {
+    const fetchImageUrl = async () => {
+      if (!recipe.imageName) return;
+
+      const normalizedImageName = getNormalizedImageName(recipe.imageName);
+      if (!normalizedImageName) return;
+
+      let imageRef = ref(storage, `Recipe_Pictures/${normalizedImageName}`);
+      try {
+        // Attempt to fetch the image with the normalized name
+        const url = await getDownloadURL(imageRef);
+        setImageUrl(url);
+        return; // Exit if the image is found
+      } catch (error) {
+        console.warn(`File not found: ${normalizedImageName}. Retrying with leading dash...`);
+      }
+
+      try {
+        // Retry with a leading dash
+        const fallbackImageName = `-${normalizedImageName}`;
+        imageRef = ref(storage, `Recipe_Pictures/${fallbackImageName}`);
+        const url = await getDownloadURL(imageRef);
+        setImageUrl(url);
+      } catch (retryError) {
+        console.error("Image fetch failed for both cases:", retryError);
+        setImageUrl("/images/placeholder.jpg"); // Fallback image
+      }
+    };
+    
+    fetchImageUrl();
+  }, [recipe.imageName]);
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200">
       {/* Recipe Image Section */}
       <div className="h-48 w-full bg-gray-300 flex items-center justify-center">
-        {normalizedImageName ? (
-          // Display the recipe image if available
-          <img
-            src={`/Food%20Images/${normalizedImageName}`} // Dynamic image path with %20 for spaces
-            alt={recipe.title || "N/A"} // Use recipe title as alt text
-            className="h-full w-full object-cover" // Ensure the image covers the container
-            onError={(e) => (e.target.src = "/images/placeholder.jpg")} // Fallback to a placeholder image if loading fails
-          />
-        ) : (
-          // Placeholder text if no image is provided
-          <span className="text-gray-500">Image Placeholder</span>
-        )}
+        {imageUrl ? (
+            <img
+              src={imageUrl} // Use the Firebase image URL
+              alt={recipe.title || "N/A"}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-gray-500">Image Placeholder</span>
+          )}
       </div>
 
       {/* Content Section */}

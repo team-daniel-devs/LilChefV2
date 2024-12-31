@@ -1,45 +1,98 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebaseconfig"; // Firebase configuration
 import { doc, getDoc } from "firebase/firestore"; // Firestore methods
+import { auth } from "../firebaseconfig"; // Firebase Auth
+import { getStorage, ref, getDownloadURL } from "firebase/storage"; // Firebase Storage
 import SavedRecipe from "../components/SavedRecipe"; // SavedRecipe component
 
 const Saved = () => {
   const [savedRecipes, setSavedRecipes] = useState([]); // State to hold saved recipes
-  const userId = "C87jGxF8LzRxrHzXt5EIkORhNHS2"; // Hardcoded user ID, replace with dynamic logic as needed
+  const [userId, setUserId] = useState(null); // State to hold the current user's ID
 
   useEffect(() => {
-    // Function to fetch saved recipes for the user
+    // Listen for the currently logged-in user
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserId(user.uid); // Set the user's ID
+      } else {
+        console.error("No user is logged in");
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
+
+  // Helper function to normalize the image name
+  const getNormalizedImageName = (imageName) => {
+    if (!imageName) return null; // Return null if no image name is provided
+
+    // Normalize the image name: trim spaces, remove leading dashes, and replace spaces with dashes
+    return imageName
+      .toLowerCase()
+      .trim()
+      .replace(/^\s*-+/, "") // Remove leading dashes
+      .replace(/\s+/g, "-") + ".jpg"; // Replace spaces with dashes and add extension
+  };
+
+  // Function to fetch image URL with retry logic
+  const fetchImageUrl = async (imageName) => {
+    const storage = getStorage(); // Initialize Firebase Storage
+    const normalizedImageName = getNormalizedImageName(imageName);
+    if (!normalizedImageName) return "/images/placeholder.jpg"; // Return placeholder if normalization fails
+
+    // Reference without leading dash
+    let imageRef = ref(storage, `Recipe_Pictures/${normalizedImageName}`);
+
+    try {
+      // Try fetching the image
+      return await getDownloadURL(imageRef);
+    } catch (error) {
+      console.warn(`File not found: ${normalizedImageName}. Retrying with leading dash...`);
+    }
+
+    try {
+      // Retry with leading dash
+      const fallbackImageName = `-${normalizedImageName}`;
+      imageRef = ref(storage, `Recipe_Pictures/${fallbackImageName}`);
+      return await getDownloadURL(imageRef);
+    } catch (retryError) {
+      console.error("Image fetch failed for both cases:", retryError);
+      return "/images/placeholder.jpg"; // Return placeholder on failure
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return; // Wait until userId is set
+
     const fetchSavedRecipes = async () => {
       try {
-        // Get the user document from Firestore
         const userDoc = await getDoc(doc(db, "users", userId));
         if (!userDoc.exists()) {
           console.error("User not found");
-          return; // Exit if user doesn't exist
+          return;
         }
 
-        const userData = userDoc.data(); // Get user data
-        const recipeIds = userData.savedRecipes || []; // Get the saved recipe IDs or an empty array
+        const userData = userDoc.data();
+        const recipeIds = userData.savedRecipes || [];
 
-        // Fetch each recipe document using the IDs
-        const recipePromises = recipeIds.map((recipeId) =>
-          getDoc(doc(db, "recipes", recipeId))
-        );
+        const recipePromises = recipeIds.map(async (recipeId) => {
+          const recipeDoc = await getDoc(doc(db, "recipes", recipeId));
+          if (!recipeDoc.exists()) return null;
 
-        // Resolve all promises and filter out non-existent recipes
-        const recipeDocs = await Promise.all(recipePromises);
-        const recipes = recipeDocs
-          .filter((doc) => doc.exists()) // Ensure the document exists
-          .map((doc) => ({ id: doc.id, ...doc.data() })); // Map document data into recipe objects
+          const recipeData = recipeDoc.data();
+          const imageUrl = await fetchImageUrl(recipeData.image_name); // Fetch normalized image URL
+          return { id: recipeId, ...recipeData, imageUrl }; // Attach image URL to the recipe data
+        });
 
+        const recipes = (await Promise.all(recipePromises)).filter(Boolean); // Filter out null values
         setSavedRecipes(recipes); // Update state with the fetched recipes
       } catch (error) {
         console.error("Error fetching saved recipes:", error);
       }
     };
 
-    fetchSavedRecipes(); // Call the function
-  }, [userId]); // Dependency array ensures this runs only when `userId` changes
+    fetchSavedRecipes();
+  }, [userId]);
 
   return (
     <div className="min-h-screen p-4 bg-gray-100">
@@ -96,7 +149,7 @@ const Saved = () => {
             key={recipe.id} // Unique key for each recipe
             recipeId={recipe.id} // Pass recipe ID for navigation
             title={recipe.title} // Pass recipe title
-            image={`/Food Images/${recipe.image_name}.jpg`} // Construct image path
+            image={recipe.imageUrl} // Construct image path
             likes={Math.floor(Math.random() * 1000)} // Temporary random likes
             cookingTime={recipe.cooking_time || "N/A"} // Fallback if cooking time is missing
           />

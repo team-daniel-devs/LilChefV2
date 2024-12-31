@@ -7,9 +7,13 @@ import RecipePage from './pages/RecipePage';
 import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
 import Login from './pages/Login';
+import testStorageConnection from "./utils/testStorageConnection";
+
+testStorageConnection();
 
 const App = () => {
   const [showApp, setShowApp] = useState(true);
+  testStorageConnection();
   const [message, setMessage] = useState('');
 
   useEffect(() => {
