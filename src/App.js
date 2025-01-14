@@ -9,6 +9,8 @@ import SignUp from './pages/onboarding/SignUp';
 import Grocery from './pages/Grocery';
 import Desktop from './website/Desktop'; // Import the Desktop component
 import Mobile from './website/Mobile'; // Import the Mobile component
+import Questions from './pages/onboarding/Questions';
+
 
 const App = () => {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -17,7 +19,7 @@ const App = () => {
   useEffect(() => {
     const handleResize = () => {
       // Check if the device is a desktop
-      setIsDesktop(window.innerWidth > 1024);
+      setIsDesktop(window.innerWidth > 424);
     };
 
     const checkStandaloneMode = () => {
@@ -39,15 +41,16 @@ const App = () => {
     };
   }, []);
 
-  if (isDesktop) {
-    return <Desktop />; // Render the Desktop component for desktop screens
-  }
+  // if (isDesktop) {
+  //   return <Desktop />; // Render the Desktop component for desktop screens
+  // }
 
-  if (!isDesktop && isStandalone) {
+  if (isDesktop) {
     return (
       <Router>
         <div style={{ paddingBottom: '60px' }}>
           <Routes>
+            <Route path="/questions" element={<Questions />} />
             <Route path="/" element={<LandingPage />} />
             <Route path="/saved" element={<Saved />} />
             <Route path="/recipepage" element={<RecipePage />} />
@@ -70,7 +73,7 @@ const ConditionalTaskbar = () => {
   const location = useLocation();
 
   // Define routes where the Taskbar should be hidden
-  const hideTaskbarRoutes = ['/', '/recipepage', '/signup'];
+  const hideTaskbarRoutes = ['/', '/recipepage', '/signup', '/questions'];
 
   // Check if the current path matches any route in `hideTaskbarRoutes`
   const shouldHideTaskbar = hideTaskbarRoutes.includes(location.pathname);
