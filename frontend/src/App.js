@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import testStorageConnection from "./utils/testStorageConnection";
 import Desktop from "./website/Desktop";
 import Mobile from "./website/Mobile";
+import Grocery from './pages/Grocery';
 
 testStorageConnection();
 
@@ -83,6 +84,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/recipepage" element={<RecipePage />} />
           <Route path="/recipepage/:recipeId" element={<RecipePage />} />
+          <Route path="/grocery" element={<Grocery />} />
         </Routes>
 
         {/* Conditionally render the Taskbar */}

@@ -148,15 +148,6 @@ const RecipePage = () => {
     );
   }
 
-  // Handle adding ingredients to the shopping list
-  const handleAddToShoppingList = () => {
-    setIsPopupVisible(true); // Show the popup
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupVisible(false); // Hide the popup
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
     {/* Image Section */}
@@ -253,7 +244,7 @@ const RecipePage = () => {
     {/* Shopping List Popup */}
     {isPopupVisible && (
       <AddToShoppingList
-        recipe={recipe}
+        recipe={{ ...recipe, id: recipeId }}
         onClose={() => setIsPopupVisible(false)}
       />
     )}
