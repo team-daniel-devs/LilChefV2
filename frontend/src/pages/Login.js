@@ -54,7 +54,7 @@ const Login = ({ navigation }) => {
       {/* Logo Section */}
       <div className="flex justify-center items-center">
         <img
-          src="/images/Logo_no_name.png" // Replace with the correct path to your logo
+          src="/images/logo_better.png" // Replace with the correct path to your logo
           alt="Logo"
           className="w-24 h-24 object-contain"
         />

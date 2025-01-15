@@ -8,7 +8,7 @@ const LandingPage = () => {
   const pages = [
     {
       type: "welcome",
-      image: "/images/logo.png", // Replace with correct path
+      image: "/images/logo_better.png", // Replace with correct path
     },
     {
       title: "Recipes Just For You",

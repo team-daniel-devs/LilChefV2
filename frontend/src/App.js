@@ -11,6 +11,8 @@ import testStorageConnection from "./utils/testStorageConnection";
 import Desktop from "./website/Desktop";
 import Mobile from "./website/Mobile";
 import Grocery from './pages/Grocery';
+import Search from './pages/Search';
+import Plan from './pages/Plan';
 
 testStorageConnection();
 
@@ -85,6 +87,8 @@ const App = () => {
           <Route path="/recipepage" element={<RecipePage />} />
           <Route path="/recipepage/:recipeId" element={<RecipePage />} />
           <Route path="/grocery" element={<Grocery />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/plan" element={<Plan />} />
         </Routes>
 
         {/* Conditionally render the Taskbar */}
@@ -98,7 +102,7 @@ const ConditionalTaskbar = () => {
   const location = useLocation();
 
   // Define routes where the Taskbar should be hidden
-  const hideTaskbarRoutes = ['/', '/recipepage', '/signup'];
+  const hideTaskbarRoutes = ['/', '/recipepage', '/signup', '/login'];
 
   // Check if the current path matches any route in `hideTaskbarRoutes`
   const shouldHideTaskbar = hideTaskbarRoutes.includes(location.pathname);

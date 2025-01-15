@@ -19,9 +19,9 @@ const Navbar = () => {
       </Link>
 
       <Link
-        to="/about"
+        to="/search"
         className={`flex flex-col items-center w-20 ${
-          location.pathname === '/about' ? 'text-cyan-400' : 'text-gray-600'
+          location.pathname === '/search' ? 'text-cyan-400' : 'text-gray-600'
         }`}
       >
         <span className="text-lg">🔎</span>
@@ -29,9 +29,9 @@ const Navbar = () => {
       </Link>
 
       <Link
-        to="/settings"
+        to="/plan"
         className={`flex flex-col items-center w-20 ${
-          location.pathname === '/settings' ? 'text-cyan-400' : 'text-gray-600'
+          location.pathname === '/plan' ? 'text-cyan-400' : 'text-gray-600'
         }`}
       >
         <span className="text-lg">📅</span>
@@ -51,7 +51,7 @@ const Navbar = () => {
       <Link
         to="/grocery"
         className={`flex flex-col items-center w-20 ${
-          location.pathname === '/settings' ? 'text-cyan-400' : 'text-gray-600'
+          location.pathname === '/grocery' ? 'text-cyan-400' : 'text-gray-600'
         }`}
       >
         <span className="text-lg">🛒</span>
