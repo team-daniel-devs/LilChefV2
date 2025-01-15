@@ -4,7 +4,7 @@ import { db } from "../firebaseconfig";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
 import { getAuth } from "firebase/auth"; // Firebase Authentication
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import ShoppingListPopup from "../components/ShoppingListPopup"; // Component for adding ingredients to a shopping list
+import AddToShoppingList from "../components/AddToShoppingList"; // Component for adding ingredients to a shopping list
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
@@ -148,11 +148,6 @@ const RecipePage = () => {
     );
   }
 
-  // Construct the image path using `image_name`
-  const imagePath = recipe.image_name
-    ? `/Food Images/${recipe.image_name.toLowerCase().replace(/\s+/g, "-")}.jpg`
-    : "/images/placeholder.jpg"; // Fallback image if `image_name` is missing
-
   // Handle adding ingredients to the shopping list
   const handleAddToShoppingList = () => {
     setIsPopupVisible(true); // Show the popup
@@ -164,176 +159,105 @@ const RecipePage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
-      {/* Image Section */}
-      <div className="relative">
-        <img
-          src={imageUrl || "/image/placeholder.jpg"}
-          alt={recipe.title || "Recipe Image"}
-          className="w-full h-64 object-cover"
-        />
-        <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-          <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
-        </button>
-        <button onClick={handleSaveRecipe} className="absolute top-4 right-4">
-          <img src="/images/save.png" alt="Save" className="w-8 h-8" />
-        </button>
+    {/* Image Section */}
+    <div className="relative">
+      <img
+        src={imageUrl || "/images/placeholder.jpg"}
+        alt={recipe.title || "Recipe"}
+        className="w-full h-64 object-cover"
+      />
+      <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
+        <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
+      </button>
+      <button onClick={handleSaveRecipe} className="absolute top-4 right-4">
+        <img src="/images/save.png" alt="Save" className="w-8 h-8" />
+      </button>
+    </div>
 
-        {/* Tab Dots */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {tabs.map((_, index) => (
-            <div
-              key={index}
-              onClick={() => scrollToTab(index)}
-              className={`w-2 h-2 rounded-full cursor-pointer ${
-                activeTab === index ? "bg-green-500" : "bg-gray-300"
-              }`}
-            ></div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recipe Details */}
-      <div className="flex-grow px-6 pb-4">
-        <h2 className="text-2xl font-bold mt-4">{recipe.title || "N/A"}</h2>
-        <p className="text-sm text-gray-500 mt-1">By: {recipe.author || "N/A"}</p>
-        <div className="flex items-center mt-2 space-x-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <img src="/images/clock.png" alt="Clock" className="w-4 h-4 mr-2" />
-            <span>{recipe.prepTime || "N/A"}</span>
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <img src="/images/level.png" alt="Level" className="w-4 h-4 mr-2" />
-            <span>{recipe.level || "Easy"}</span>
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <img src="/images/cal.png" alt="Calories" className="w-4 h-4 mr-2" />
-            <span>{recipe.nutrition?.calories || "300 cal"}</span>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center justify-center mt-6 space-x-6 border-b border-gray-200 pb-2">
-          {tabs.map((tab, index) => (
-            <button
-              key={tab}
-              onClick={() => scrollToTab(index)}
-              className={`text-sm font-medium ${
-                activeTab === index
-                  ? "text-green-500 border-b-2 border-green-500 pb-1"
-                  : "text-gray-500"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-      {/* Popup */}
-      {isPopupVisible && (
-        <ShoppingListPopup
-          recipe={recipe} // Pass recipe data to the popup
-          onClose={handleClosePopup} // Close function
-        />
-      )}
-
-      {/* Swipable Content */}
-      <div
-          ref={scrollContainerRef}
-          className="mt-4 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
-        >
-          {/* Ingredients Tab */}
-          <div
-            className="min-w-full snap-center px-6"
-            style={{ flexShrink: 0 }}
-          >
-            {activeTab === 0 && (
-              <>
-                {/* Description */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold">Description</h3>
-                  <p className="text-gray-600 text-sm mt-2">
-                    {recipe.description || "No description available."}
-                  </p>
-                </div>
-
-                {/* Add to Shopping List Button */}
-                <div className="mt-4 flex justify-center">
-                  <button
-                    className="flex items-center justify-center border border-green-500 text-green-500 font-medium rounded-full"
-                    style={{ width: "219px", height: "37px" }}
-                    onClick={handleAddToShoppingList} // Open Popup
-                  >
-                    <img src="/images/list.png" alt="Save Icon" className="w-5 h-5 mr-2" />
-                    Add to Shopping List
-                  </button>
-                </div>
-
-                {/* Servings */}
-                <div className="flex items-center mt-4">
-                  <span className="text-gray-600 font-medium">Servings:</span>
-                  <span className="ml-2 text-lg font-bold">
-                    {recipe.servings || "N/A"}
-                  </span>
-                </div>
-
-                {/* Ingredients */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold">Ingredients</h3>
-                  <ul className="list-disc ml-6">
-                    {recipe.ingredients.map((ingredient, index) => (
-                      <li key={index} className="text-sm text-gray-600">
-                        {ingredient}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Instructions Tab */}
-          <div
-            className="min-w-full snap-center px-6"
-            style={{ flexShrink: 0 }}
-          >
-            {activeTab === 1 && (
-              <>
-                <h3 className="text-lg font-semibold">Instructions</h3>
-                <p className="text-sm text-gray-600">
-                  {recipe.instructions || "No instructions available."}
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* Nutrition Tab */}
-          <div
-            className="min-w-full snap-center px-6"
-            style={{ flexShrink: 0 }}
-          >
-            {activeTab === 2 && (
-              <>
-                <h3 className="text-lg font-semibold">Nutrition</h3>
-                <ul className="list-disc ml-6">
-                  <li className="text-sm text-gray-600">
-                    Calories: {recipe.nutrition?.calories || "N/A"}
-                  </li>
-                  <li className="text-sm text-gray-600">
-                    Protein: {recipe.nutrition?.protein || "N/A"}
-                  </li>
-                  <li className="text-sm text-gray-600">
-                    Fat: {recipe.nutrition?.fat || "N/A"}
-                  </li>
-                  <li className="text-sm text-gray-600">
-                    Sugar: {recipe.nutrition?.sugar || "N/A"}
-                  </li>
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
+    {/* Recipe Details */}
+    <div className="px-6 py-4">
+      <h2 className="text-2xl font-bold">{recipe.title || "Untitled Recipe"}</h2>
+      <p className="text-sm text-gray-500">By: {recipe.author || "Unknown"}</p>
+      <div className="flex items-center mt-2 space-x-4">
+        <span className="text-sm text-gray-600">{recipe.prepTime || "N/A"} mins</span>
+        <span className="text-sm text-gray-600">{recipe.level || "Easy"}</span>
+        <span className="text-sm text-gray-600">
+          {recipe.nutrition?.calories || "N/A"} cal
+        </span>
       </div>
     </div>
+
+    {/* Tabs Section */}
+    <div className="flex justify-center mt-4 space-x-4">
+      {tabs.map((tab, index) => (
+        <button
+          key={tab}
+          className={`text-sm ${
+            activeTab === index
+              ? "text-green-500 border-b-2 border-green-500"
+              : "text-gray-500"
+          }`}
+          onClick={() => scrollToTab(index)}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+
+    {/* Tab Content */}
+    <div
+      ref={scrollContainerRef}
+      className="mt-4 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+    >
+      {/* Ingredients */}
+      <div className="min-w-full snap-center px-6">
+        <h3 className="text-lg font-semibold">Ingredients</h3>
+        <ul className="list-disc ml-6">
+          {recipe.ingredients.map((ingredient, index) => (
+            <li key={index} className="text-sm text-gray-600">
+              {ingredient}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Instructions */}
+      <div className="min-w-full snap-center px-6">
+        <h3 className="text-lg font-semibold">Instructions</h3>
+        <p className="text-sm text-gray-600">
+          {recipe.instructions || "No instructions available."}
+        </p>
+      </div>
+
+      {/* Nutrition */}
+      <div className="min-w-full snap-center px-6">
+        <h3 className="text-lg font-semibold">Nutrition</h3>
+        <ul className="list-disc ml-6">
+          <li>Calories: {recipe.nutrition?.calories || "N/A"}</li>
+          <li>Protein: {recipe.nutrition?.protein || "N/A"}g</li>
+          <li>Fat: {recipe.nutrition?.fat || "N/A"}g</li>
+          <li>Sugar: {recipe.nutrition?.sugar || "N/A"}g</li>
+        </ul>
+      </div>
+    </div>
+
+    {/* Shopping List Button */}
+    <button
+      onClick={() => setIsPopupVisible(true)}
+      className="fixed bottom-0 left-0 w-full py-3 bg-green-500 text-white text-lg font-bold mb-5"
+      style={{ bottom: "60px" }} // Adjust this value to the height of your navbar
+    >
+      Add to Shopping List
+    </button>
+
+    {/* Shopping List Popup */}
+    {isPopupVisible && (
+      <AddToShoppingList
+        recipe={recipe}
+        onClose={() => setIsPopupVisible(false)}
+      />
+    )}
+  </div>
   );
 };
 
