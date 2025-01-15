@@ -95,28 +95,26 @@ const Saved = () => {
   }, [userId]);
 
   return (
-    <div className="min-h-screen p-4 bg-gray-100">
-      {/* Header Section */}
-      <header className="flex justify-between items-center px-4 py-6">
-        <h1 className="text-2xl font-bold">Saved Recipes</h1>
-        <img
-          src="/images/profile-icon.png" // Profile icon image
-          alt="Profile"
-          className="w-8 h-8 rounded-full"
-        />
+    <div className="min-h-screen p-4">
+      {/* Header */}
+      <header className="flex items-center justify-center p-10">
+        <h1 className="text-2xl font-semibold text-gray-800">Saved Recipes</h1>
       </header>
 
-      {/* Search Bar Section */}
+      {/* Search Bar */}
       <div className="mb-4">
         <div className="flex items-center bg-white p-3 rounded-lg shadow">
-          <img
-            src="/images/search.png" // Search icon image
-            alt="Search"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 16 16"
             className="w-5 h-5 text-gray-500 mr-2"
-          />
+          >
+            <path d="M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85a1.007 1.007 0 00-.115-.1zm-5.479.607a5.5 5.5 0 1110 0 5.5 5.5 0 01-10 0z" />
+          </svg>
           <input
             type="text"
-            placeholder="Search saved recipes" // Input placeholder text
+            placeholder="Search saved recipes"
             className="w-full bg-transparent outline-none text-gray-800"
           />
         </div>
@@ -124,20 +122,10 @@ const Saved = () => {
 
       {/* Filter and Sort Buttons */}
       <div className="flex gap-4 mb-6">
-        <button className="flex-1 bg-green-500 text-white py-2 rounded-full flex items-center justify-center">
-          <img
-            src="/images/filter.png" // Filter icon image
-            alt="Filter"
-            className="w-5 h-5 mr-2"
-          />
+        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
           Filter
         </button>
-        <button className="flex-1 bg-green-500 text-white py-2 rounded-full flex items-center justify-center">
-          <img
-            src="/images/sort.png" // Sort icon image
-            alt="Sort"
-            className="w-5 h-5 mr-2"
-          />
+        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
           Sort
         </button>
       </div>
@@ -155,17 +143,10 @@ const Saved = () => {
           />
         ))}
       </div>
-
-      {/* Navigation Bar */}
-      <footer className="fixed bottom-0 left-0 w-full bg-white shadow-lg py-4 flex justify-around">
-        <img src="/images/home-icon.png" alt="Home" className="w-6 h-6" />
-        <img src="/images/search-icon.png" alt="Search" className="w-6 h-6" />
-        <img src="/images/calendar-icon.png" alt="Plan" className="w-6 h-6" />
-        <img src="/images/saved-icon.png" alt="Saved" className="w-6 h-6" />
-        <img src="/images/cart-icon.png" alt="Cart" className="w-6 h-6" />
-      </footer>
     </div>
   );
 };
 
 export default Saved;
+
+

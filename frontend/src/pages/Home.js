@@ -3,12 +3,15 @@ import RecipeCard from "../components/RecipeCard"; // RecipeCard component to di
 import { collection, getDocs } from "firebase/firestore"; // Firestore functions
 import { db } from "../firebaseconfig"; // Firebase configuration
 import { Link } from "react-router-dom"; // For navigation
+import FilterPage from "../components/FilterPage"; // Import the updated FilterPage component
 
 
 const Home = () => {
   const [recipes, setRecipes] = useState([]); // Stores the list of recipes fetched from Firestore
   
   const [currentIndex, setCurrentIndex] = useState(0); // Tracks the index of the currently displayed recipe
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+
   const containerRef = useRef(null);
   const startX = useRef(0);  // Starting X position
   const startY = useRef(0);  // Starting Y position
@@ -134,14 +137,34 @@ const Home = () => {
   };
 
   return (
-    <div
-      className="min-h-screen bg-gray-100 flex justify-center items-center overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="recipe-container relative" ref={containerRef}>
-        {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
+    <div className="min-h-screen flex flex-col items-center overflow-hidden bg-gray-100">
+      <div className="w-full bg-white shadow flex justify-between items-center px-4 py-3">
+        <button
+          className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow z-10"
+          onClick={() => setIsFilterVisible(true)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="white"
+            className="w-5 h-5 mr-2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+          </svg>
+          Sort
+        </button>
+      </div>
+
+      <div
+        className="recipe-container relative -mt-20"
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+          {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
           <div className="recipe-card" key={recipe.id}>
             {/* Link to the detailed recipe page */}
             <Link to={`/recipepage/${recipe.id}`}>
@@ -150,6 +173,11 @@ const Home = () => {
           </div>
         ))}
       </div>
+
+      <FilterPage
+        isVisible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+      />
     </div>
   );
 };
