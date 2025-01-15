@@ -8,11 +8,14 @@ import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
 import Login from './pages/Login';
 import testStorageConnection from "./utils/testStorageConnection";
+import Desktop from "./website/Desktop";
+import Mobile from "./website/Mobile";
 
 testStorageConnection();
 
 const App = () => {
   const [showApp, setShowApp] = useState(true);
+  const [mobile, setMobile] = useState(false);
   testStorageConnection();
   const [message, setMessage] = useState('');
 
@@ -21,6 +24,7 @@ const App = () => {
     if (window.innerWidth > 1024) {
       setShowApp(false);
       setMessage('Please use your phone to access this app.');
+      return <Desktop/>
       return;
     }
 
@@ -28,12 +32,6 @@ const App = () => {
     const isStandalone =
       window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-      // Making sure ur on the app (commented otu for dev purposes)
-    // if (!isStandalone) {
-    //   setShowApp(false);
-    //   setMessage('Please add this app to your home screen for the best experience.');
-    //   return;
-    // }
 
     // Detect if the app is in landscape mode
     const handleOrientationChange = () => {
@@ -46,6 +44,14 @@ const App = () => {
       }
     };
 
+    //   // Making sure ur on the app (commented otu for dev purposes)
+    // if (!isStandalone) {
+    //   setShowApp(false);
+    //   setMobile(true);
+    //   setMessage('Please add this app to your home screen for the best experience.');
+    //   return;
+    // }
+
     handleOrientationChange(); // Check on load
     window.addEventListener('resize', handleOrientationChange);
     return () => {
@@ -54,19 +60,16 @@ const App = () => {
   }, []);
 
   if (!showApp) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          textAlign: 'center',
-        }}
-      >
-        <p>{message}</p>
-      </div>
-    );
+    if(!mobile){
+      return (
+        <Desktop/>
+      );
+    }
+    else{
+      return (
+      <Mobile/>
+      );
+    }
   }
 
   return (
