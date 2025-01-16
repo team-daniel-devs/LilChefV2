@@ -9,6 +9,17 @@ const Saved = () => {
   const [savedRecipes, setSavedRecipes] = useState([]); // State to hold saved recipes
   const [userId, setUserId] = useState(null); // State to hold the current user's ID
 
+  //put this to enable scrolling!
+  useEffect(() => {
+    // Enable scrolling for this page
+    document.body.style.overflow = "auto";
+
+    return () => {
+      // Restore original overflow when leaving this page
+      document.body.style.overflow = "hidden";
+    };
+  }, []);
+
   useEffect(() => {
     // Listen for the currently logged-in user
     const unsubscribe = auth.onAuthStateChanged((user) => {
