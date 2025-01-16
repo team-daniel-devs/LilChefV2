@@ -1,109 +1,84 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebaseconfig"; // Firebase configuration
-import { doc, getDoc } from "firebase/firestore"; // Firestore methods
-import { auth } from "../firebaseconfig"; // Firebase Auth
-import { getStorage, ref, getDownloadURL } from "firebase/storage"; // Firebase Storage
 import SavedRecipe from "../components/SavedRecipe"; // SavedRecipe component
+import { fetchImageUrl } from "../utils/imageUtils";
+import { fetchSavedRecipes, onAuthStateChanged } from "../utils/firebaseUtils";
 
 const Saved = () => {
   const [savedRecipes, setSavedRecipes] = useState([]); // State to hold saved recipes
   const [userId, setUserId] = useState(null); // State to hold the current user's ID
+  const [loading, setLoading] = useState(true); // Loading state for recipes
 
-  //put this to enable scrolling!
+  // Enable scrolling for this page
   useEffect(() => {
-    // Enable scrolling for this page
     document.body.style.overflow = "auto";
-
     return () => {
-      // Restore original overflow when leaving this page
       document.body.style.overflow = "hidden";
     };
   }, []);
 
+  // Listen for the currently logged-in user
   useEffect(() => {
-    // Listen for the currently logged-in user
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged((user) => {
       if (user) {
         setUserId(user.uid); // Set the user's ID
       } else {
         console.error("No user is logged in");
+        setUserId(null);
+        setSavedRecipes([]); // Clear saved recipes if no user is logged in
+        setLoading(false);
       }
     });
 
     return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
 
-  // Helper function to normalize the image name
-  const getNormalizedImageName = (imageName) => {
-    if (!imageName) return null; // Return null if no image name is provided
-
-    // Normalize the image name: trim spaces, remove leading dashes, and replace spaces with dashes
-    return imageName
-      .toLowerCase()
-      .trim()
-      .replace(/^\s*-+/, "") // Remove leading dashes
-      .replace(/\s+/g, "-") + ".jpg"; // Replace spaces with dashes and add extension
-  };
-
-  // Function to fetch image URL with retry logic
-  const fetchImageUrl = async (imageName) => {
-    const storage = getStorage(); // Initialize Firebase Storage
-    const normalizedImageName = getNormalizedImageName(imageName);
-    if (!normalizedImageName) return "/images/placeholder.jpg"; // Return placeholder if normalization fails
-
-    // Reference without leading dash
-    let imageRef = ref(storage, `Recipe_Pictures/${normalizedImageName}`);
-
-    try {
-      // Try fetching the image
-      return await getDownloadURL(imageRef);
-    } catch (error) {
-      console.warn(`File not found: ${normalizedImageName}. Retrying with leading dash...`);
-    }
-
-    try {
-      // Retry with leading dash
-      const fallbackImageName = `-${normalizedImageName}`;
-      imageRef = ref(storage, `Recipe_Pictures/${fallbackImageName}`);
-      return await getDownloadURL(imageRef);
-    } catch (retryError) {
-      console.error("Image fetch failed for both cases:", retryError);
-      return "/images/placeholder.jpg"; // Return placeholder on failure
-    }
-  };
-
+  // Fetch saved recipes when userId changes
   useEffect(() => {
-    if (!userId) return; // Wait until userId is set
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
-    const fetchSavedRecipes = async () => {
+    const fetchRecipes = async () => {
       try {
-        const userDoc = await getDoc(doc(db, "users", userId));
-        if (!userDoc.exists()) {
-          console.error("User not found");
-          return;
-        }
-
-        const userData = userDoc.data();
-        const recipeIds = userData.savedRecipes || [];
-
-        const recipePromises = recipeIds.map(async (recipeId) => {
-          const recipeDoc = await getDoc(doc(db, "recipes", recipeId));
-          if (!recipeDoc.exists()) return null;
-
-          const recipeData = recipeDoc.data();
-          const imageUrl = await fetchImageUrl(recipeData.image_name); // Fetch normalized image URL
-          return { id: recipeId, ...recipeData, imageUrl }; // Attach image URL to the recipe data
-        });
-
-        const recipes = (await Promise.all(recipePromises)).filter(Boolean); // Filter out null values
-        setSavedRecipes(recipes); // Update state with the fetched recipes
+        setLoading(true); // Set loading to true when starting the fetch
+        const recipes = await fetchSavedRecipes(userId); // Fetch recipes using the utility function
+        const recipesWithImages = await Promise.all(
+          recipes.map(async (recipe) => ({
+            ...recipe,
+            imageUrl: recipe.image_name
+              ? await fetchImageUrl(recipe.image_name)
+              : "/images/placeholder.jpg", // Attach image URLs
+          }))
+        );
+        setSavedRecipes(recipesWithImages); // Update the state with recipes
       } catch (error) {
         console.error("Error fetching saved recipes:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
 
-    fetchSavedRecipes();
+    fetchRecipes();
   }, [userId]);
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading saved recipes...</p>
+      </div>
+    );
+  }
+
+  // Handle case when no recipes are saved
+  if (!savedRecipes.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>No saved recipes found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4">

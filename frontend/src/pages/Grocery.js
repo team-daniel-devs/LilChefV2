@@ -1,52 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebaseconfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import GroceryRecipe from "../components/GroceryRecipe";
+import { fetchImageUrl } from "../utils/imageUtils";
+import { fetchUserShoppingList, fetchRecipeDetails, updateFirestoreDoc, getCurrentUser } from "../utils/firebaseUtils";
 
 const Grocery = () => {
   const [recipes, setRecipes] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipeId, setSelectedRecipeId] = useState(null); // New state for selected recipe
-  const auth = getAuth();
-  const storage = getStorage();
-
-  const getNormalizedImageName = (imageName) => {
-    if (!imageName) return null;
-    return imageName
-      .toLowerCase()
-      .trim()
-      .replace(/^\s*-+/, "")
-      .replace(/\s+/g, "-") + ".jpg";
-  };
-
-  const fetchImageUrl = async (imageName) => {
-    if (!imageName) return "/images/placeholder.jpg";
-
-    const normalizedImageName = getNormalizedImageName(imageName);
-    let imageRef = ref(storage, `Recipe_Pictures/${normalizedImageName}`);
-
-    try {
-      return await getDownloadURL(imageRef);
-    } catch (error) {
-      console.warn(`Image not found: ${normalizedImageName}. Retrying with leading dash...`);
-    }
-
-    try {
-      const fallbackImageName = `-${normalizedImageName}`;
-      imageRef = ref(storage, `Recipe_Pictures/${fallbackImageName}`);
-      return await getDownloadURL(imageRef);
-    } catch (retryError) {
-      console.error("Image fetch failed:", retryError);
-      return "/images/placeholder.jpg"; // Fallback image
-    }
-  };
 
   useEffect(() => {
     const fetchShoppingList = async () => {
-      const user = auth.currentUser;
+      const user = getCurrentUser();
 
       if (!user) {
         console.error("User not logged in");
@@ -55,20 +20,15 @@ const Grocery = () => {
       }
 
       try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        const shoppingList = userDoc.data()?.shopping_list || {};
+        const shoppingList = await fetchUserShoppingList(user.uid);
 
         const fetchedRecipes = [];
         const fetchedIngredients = [];
 
         for (const recipeId in shoppingList) {
-          // Fetch recipe details from the recipes collection
-          const recipeDocRef = doc(db, "recipes", recipeId);
-          const recipeDoc = await getDoc(recipeDocRef);
+          const recipeData = await fetchRecipeDetails(recipeId);
 
-          if (recipeDoc.exists()) {
-            const recipeData = recipeDoc.data();
+          if (recipeData) {
             const imageUrl = await fetchImageUrl(recipeData.image_name);
 
             fetchedRecipes.push({
@@ -82,7 +42,7 @@ const Grocery = () => {
               ...shoppingList[recipeId].ingredients.map((ingredient, index) => ({
                 id: `${recipeId}-${index}`,
                 name: ingredient,
-                recipeId: recipeId, // Track which recipe this ingredient belongs to
+                recipeId: recipeId,
                 checked: false,
               }))
             );
@@ -115,16 +75,14 @@ const Grocery = () => {
   };
 
   const handleDeleteSelected = async () => {
-    const user = auth.currentUser;
+    const user = getCurrentUser();
     if (!user) {
       console.error("User not logged in");
       return;
     }
 
     try {
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-      const shoppingList = userDoc.data()?.shopping_list || {};
+      const shoppingList = await fetchUserShoppingList(user.uid);
 
       const updatedShoppingList = { ...shoppingList };
 
@@ -132,9 +90,9 @@ const Grocery = () => {
       const selectedItems = ingredients.filter((item) => item.checked);
       selectedItems.forEach((item) => {
         const { recipeId, name } = item;
-        updatedShoppingList[recipeId].ingredients = updatedShoppingList[recipeId].ingredients.filter(
-          (ingredient) => ingredient !== name
-        );
+        updatedShoppingList[recipeId].ingredients = updatedShoppingList[
+          recipeId
+        ].ingredients.filter((ingredient) => ingredient !== name);
 
         // Remove the recipe key if no ingredients are left
         if (updatedShoppingList[recipeId].ingredients.length === 0) {
@@ -143,12 +101,10 @@ const Grocery = () => {
       });
 
       // Update Firestore
-      await updateDoc(userDocRef, { shopping_list: updatedShoppingList });
+      await updateFirestoreDoc("users", user.uid, { shopping_list: updatedShoppingList });
 
       // Update the UI
-      setIngredients((prev) =>
-        prev.filter((item) => !item.checked)
-      );
+      setIngredients((prev) => prev.filter((item) => !item.checked));
     } catch (error) {
       console.error("Error deleting selected items:", error);
     }

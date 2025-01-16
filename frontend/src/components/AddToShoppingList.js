@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
-import { db } from "../firebaseconfig"; 
-import { getAuth } from "firebase/auth";
+import { fetchUserShoppingList, updateFirestoreDoc, getCurrentUser } from "../utils/firebaseUtils";
 
 const AddToShoppingList = ({ recipe, onClose }) => {
   // State to track selected ingredients
   const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const auth = getAuth(); // Get the Firebase Auth instance
+  
 
   // Toggle individual ingredient selection
   const handleSelectIngredient = (ingredient) => {
@@ -30,43 +28,39 @@ const AddToShoppingList = ({ recipe, onClose }) => {
 
   // Add selected ingredients to the shopping list in Firestore
   const handleAddToList = async () => {
-    const user = auth.currentUser; // Get the currently logged-in user
-  
+    const user = getCurrentUser(); // Get the currently logged-in user
+
     if (!user) {
       console.error("User not logged in");
       return;
     }
-  
+
     if (!recipe?.id) {
       console.error("Recipe ID is undefined. Cannot add to shopping list.");
       return;
     }
-  
+
     try {
-      const userDocRef = doc(db, "users", user.uid); // Reference to the user's document
-      const userDoc = await getDoc(userDocRef); // Fetch the user's document
-  
-      // Initialize or retrieve the shopping_list field
-      const shoppingList = userDoc.data()?.shopping_list || {}; // Get existing or create a new shopping_list map
-  
-      // Add or update the recipe_id map within the shopping_list
+      // Fetch the existing shopping list from Firestore
+      const shoppingList = await fetchUserShoppingList(user.uid);
+
+      // Initialize or update the shopping list for the current recipe
       if (!shoppingList[recipe.id]) {
-        // If recipe_id doesn't exist, initialize it
         shoppingList[recipe.id] = { ingredients: [] };
       }
-  
-      // Merge ingredients for the specific recipe_id, avoiding duplicates
+
+      // Merge selected ingredients with the existing ones, avoiding duplicates
       shoppingList[recipe.id].ingredients = Array.from(
         new Set([
           ...(shoppingList[recipe.id].ingredients || []),
           ...selectedIngredients,
         ])
       );
-  
-      // Update the Firestore document
-      await updateDoc(userDocRef, { shopping_list: shoppingList });
-  
-      console.log(`Ingredients added to recipe ID "${recipe.id}"`, selectedIngredients);
+
+      // Update the shopping list in Firestore
+      await updateFirestoreDoc("users", user.uid, { shopping_list: shoppingList });
+
+      console.log(`Ingredients added to recipe ID "${recipe.id}":`, selectedIngredients);
       onClose(); // Close the popup
     } catch (error) {
       console.error("Error updating shopping list:", error);

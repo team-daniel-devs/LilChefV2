@@ -1,53 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { fetchImageUrl } from "../utils/imageUtils";
 
 // A functional component to render a recipe card
 const RecipeCard = ({ recipe, opacity, text, color}) => {
   const [imageUrl, setImageUrl] = useState(null); // State to store the Firebase image URL
-  const storage = getStorage(); // Firebase Storage instance
-
-  // Helper function to normalize the image name (because the image names have dashes instead of spaces and i  the db we have spaces and not dashes)
-  const getNormalizedImageName = (imageName) => {
-    if (!imageName) return null; // Return null if no image name is provided
-  
-    // Normalize the image name: trim spaces, remove leading dashes, and replace spaces with dashes
-    return imageName
-      .toLowerCase()
-      .trim()
-      .replace(/^\s*-+/, "") // Remove leading dashes
-      .replace(/\s+/g, "-") + ".jpg"; // Replace spaces with dashes and add extension
-  };
   
   useEffect(() => {
-    const fetchImageUrl = async () => {
-      if (!recipe.imageName) return;
-
-      const normalizedImageName = getNormalizedImageName(recipe.imageName);
-      if (!normalizedImageName) return;
-
-      let imageRef = ref(storage, `Recipe_Pictures/${normalizedImageName}`);
-      try {
-        // Attempt to fetch the image with the normalized name
-        const url = await getDownloadURL(imageRef);
+    const fetchImage = async () => {
+      if (recipe.imageName) {
+        const url = await fetchImageUrl(recipe.imageName); // Use the utility function here
         setImageUrl(url);
-        return; // Exit if the image is found
-      } catch (error) {
-        console.warn(`File not found: ${normalizedImageName}. Retrying with leading dash...`);
-      }
-
-      try {
-        // Retry with a leading dash
-        const fallbackImageName = `-${normalizedImageName}`;
-        imageRef = ref(storage, `Recipe_Pictures/${fallbackImageName}`);
-        const url = await getDownloadURL(imageRef);
-        setImageUrl(url);
-      } catch (retryError) {
-        console.error("Image fetch failed for both cases:", retryError);
-        setImageUrl("/images/placeholder.jpg"); // Fallback image
+      } else {
+        setImageUrl("/images/placeholder.jpg"); // Fallback for missing imageName
       }
     };
-    
-    fetchImageUrl();
+
+    fetchImage();
   }, [recipe.imageName]);
 
   return (
