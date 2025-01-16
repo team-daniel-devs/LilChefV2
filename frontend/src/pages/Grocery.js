@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebaseconfig";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import GroceryRecipe from "../components/GroceryRecipe";
@@ -114,6 +114,46 @@ const Grocery = () => {
     setSelectedRecipeId(recipeId); // Update the selected recipe
   };
 
+  const handleDeleteSelected = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      console.error("User not logged in");
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const shoppingList = userDoc.data()?.shopping_list || {};
+
+      const updatedShoppingList = { ...shoppingList };
+
+      // Filter out the selected ingredients for each recipe
+      const selectedItems = ingredients.filter((item) => item.checked);
+      selectedItems.forEach((item) => {
+        const { recipeId, name } = item;
+        updatedShoppingList[recipeId].ingredients = updatedShoppingList[recipeId].ingredients.filter(
+          (ingredient) => ingredient !== name
+        );
+
+        // Remove the recipe key if no ingredients are left
+        if (updatedShoppingList[recipeId].ingredients.length === 0) {
+          delete updatedShoppingList[recipeId];
+        }
+      });
+
+      // Update Firestore
+      await updateDoc(userDocRef, { shopping_list: updatedShoppingList });
+
+      // Update the UI
+      setIngredients((prev) =>
+        prev.filter((item) => !item.checked)
+      );
+    } catch (error) {
+      console.error("Error deleting selected items:", error);
+    }
+  };
+
   const filteredIngredients = selectedRecipeId
     ? ingredients.filter((item) => item.recipeId === selectedRecipeId)
     : ingredients;
@@ -184,6 +224,16 @@ const Grocery = () => {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Delete Button */}
+      <div className="px-4 py-2 mb-6">
+        <button
+          className="bg-red-500 text-white w-full py-3 rounded-lg font-bold shadow-lg mb-12"
+          onClick={handleDeleteSelected}
+        >
+          Delete Selected Items
+        </button>
       </div>
 
       {/* Bottom Navigation */}
