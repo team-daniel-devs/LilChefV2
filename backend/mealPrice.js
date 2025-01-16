@@ -1,12 +1,20 @@
 const axios = require("axios");
 const { getFirestore } = require("firebase-admin/firestore");
 const admin = require('./firebaseAdmin');
-const db = admin.firestore();
+const { firebaseAdminInitialized } = admin;
+// const db = admin.firestore();
 require('dotenv').config();
 
 
 const apiKey = process.env.API_KEY;
 
+let db;
+
+firebaseAdminInitialized.then(() => {
+  db = admin.firestore();
+}).catch(error => {
+  console.error('Failed to initialize Firebase Admin:', error);
+});
 
 
 // Fetch ingredient details

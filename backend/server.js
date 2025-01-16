@@ -4,7 +4,8 @@ const { calculateMealPriceByRecipeId } = require('./mealPrice');
 const registerRoute = require('./register');
 const loginRoute = require('./login');
 const googleSignInRoute = require('./google-signin');
-const admin = require('./firebaseAdmin'); // Use your Firebase Admin initialization file
+// const admin = require('./firebaseAdmin'); // Use your Firebase Admin initialization file
+const { admin, firebaseAdminInitialized } = require('./firebaseAdmin'); // Use your Firebase Admin initialization file
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +39,10 @@ app.use('/register', registerRoute);
 app.use('/google-signin', googleSignInRoute);
 app.use('/login', loginRoute);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+firebaseAdminInitialized.then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}).catch(error => {
+  console.error('Failed to initialize Firebase Admin:', error);
 });

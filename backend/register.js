@@ -1,10 +1,21 @@
 const express = require('express');    // Express for handling HTTP requests
 const router = express.Router();      // Create a router instance for user-related routes
-const admin = require('./firebaseAdmin'); // Firebase admin SDK
-const firestore = admin.firestore(); // Access Firestore database through Firebase Admin SDK
+// const admin = require('./firebaseAdmin'); // Firebase admin SDK
+// const firestore = admin.firestore(); // Access Firestore database through Firebase Admin SDK
+const { admin, firebaseAdminInitialized } = require('./firebaseAdmin');
 
+let firestore;
+
+// Wait for Firebase Admin to be initialized before using Firestore
+firebaseAdminInitialized.then(() => {
+  firestore = admin.firestore();
+}).catch(error => {
+  console.error('Failed to initialize Firebase Admin:', error);
+});
 // Define a POST route for user registration
 router.post('/', async (req, res) => {
+    await firebaseAdminInitialized;
+
      // Extract first_name, email, and password from the request (sent from signup.js in thr frontend dir) body
     const { first_name, email, password } = req.body;
 
