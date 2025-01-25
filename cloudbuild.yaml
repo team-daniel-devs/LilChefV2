@@ -1,5 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/mvn'
   args: ['clean', 'package']
-  working_directory: '/backend'
+  working_directory: 'backend'
 
