@@ -1,5 +1,5 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/firebase-admin-app', '.']
+    args: ['build', '-t', 'gcr.io/cookaing-da70/firebase-admin-app', '.']
 images:
   - 'gcr.io/cookaing-da70/firebase-admin-app'
