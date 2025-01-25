@@ -1,5 +1,7 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/cookaing-da7d0/my-image', '.']
-  dir: '/backend' #This is the key change
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/cookaing-da7d0/firebase-admin-app', '.']
+    dir: 'backend'  # Specify the directory containing the Dockerfile
+images:
+  - 'gcr.io/cookaing-da70/firebase-admin-app'
 
