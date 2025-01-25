@@ -1,11 +1,11 @@
 FROM node:18-alpine
 
-WORKDIR /backend
+WORKDIR /app  # Changed to /app, more conventional
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --production # Install only production dependencies
 
-COPY . . 
+COPY . .
 
 EXPOSE 8081
 
