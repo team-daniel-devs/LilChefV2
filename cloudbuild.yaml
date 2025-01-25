@@ -1,7 +1,7 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/cookaing-da7d0/firebase-admin-app', '.']
-    dir: 'backend'  # Specify the directory containing the Dockerfile
-images:
-  - 'gcr.io/cookaing-da70/firebase-admin-app'
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/cookaing-da7d0/firebase-admin-app:latest', '-f', 'backend/Dockerfile', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/cookaing-da7d0/firebase-admin-app:latest']
+
 
