@@ -5,7 +5,7 @@ WORKDIR /backend
 COPY backend/package*.json ./
 RUN npm install
 
-COPY . . 
+COPY backend/. . 
 
 EXPOSE 8081
 
