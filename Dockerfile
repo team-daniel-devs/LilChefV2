@@ -2,7 +2,7 @@ FROM node:18-alpine
 
 WORKDIR /backend
 
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm install
 
 COPY . . 
