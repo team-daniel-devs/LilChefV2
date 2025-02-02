@@ -27,7 +27,7 @@ const App = () => {
     if (window.innerWidth > 1024) {
       setShowApp(false);
       setMessage('Please use your phone to access this app.');
-      return <Desktop/>
+      // return <Desktop/>
       return;
     }
 
