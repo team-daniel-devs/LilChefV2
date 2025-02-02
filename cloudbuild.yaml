@@ -1,5 +1,7 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/cookaing-da70/firebase-admin-app', '.']
+    options:
+      logging: CLOUD_LOGGING_ONLY
 images:
   - 'gcr.io/cookaing-da70/firebase-admin-app'
