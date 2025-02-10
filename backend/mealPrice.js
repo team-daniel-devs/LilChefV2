@@ -1,7 +1,5 @@
 const axios = require("axios");
 const { getFirestore } = require("firebase-admin/firestore");
-const admin = require('./firebaseAdmin');
-const db = admin.firestore();
 require('dotenv').config();
 
 
