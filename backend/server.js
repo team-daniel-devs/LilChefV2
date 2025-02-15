@@ -10,9 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-<<<<<<< Updated upstream
 app.use(cors());
-=======
 app.use(cors(
   {
     origin:[
@@ -24,7 +22,6 @@ app.use(cors(
     credentials: true
   }
 ));
->>>>>>> Stashed changes
 app.use(express.json());
 
 // Root route
