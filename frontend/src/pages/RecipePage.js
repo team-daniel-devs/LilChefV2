@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // For navigation and extracting route parameters
-import { db } from "../firebaseconfig";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
 import { getAuth } from "firebase/auth"; // Firebase Authentication
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import AddToShoppingList from "../components/AddToShoppingList"; // Component for adding ingredients to a shopping list
+import { fetchImageUrl } from "../utils/imageUtils";
+import { fetchFirestoreDoc, addToFirestoreArray } from "../utils/firebaseUtils";
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
@@ -17,22 +16,19 @@ const RecipePage = () => {
 
   const tabs = ["Ingredients", "Instructions", "Nutrition"]; // Define the tab names
   const auth = getAuth(); // Firebase Auth instance
-  const storage = getStorage(); // Firebase Storage instance
   const currentUser = auth.currentUser; // Get the currently logged-in user
 
   // Fetch the recipe data from Firestore based on `recipeId`
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const recipeDoc = await getDoc(doc(db, "recipes", recipeId));
-        if (recipeDoc.exists()) {
-          const recipeData = recipeDoc.data();
-
+        const recipeData = await fetchFirestoreDoc("recipes", recipeId); // Use utility function
+        if (recipeData) {
           // Parse the `ingredients` field if it's a JSON string
           let ingredients = [];
           try {
             ingredients = recipeData.ingredients
-              ? JSON.parse(recipeData.ingredients.replace(/'/g, '"')) // Replace single quotes with double quotes
+              ? JSON.parse(recipeData.ingredients.replace(/'/g, '"'))
               : [];
           } catch (error) {
             console.error("Error parsing ingredients:", error);
@@ -43,25 +39,11 @@ const RecipePage = () => {
             ingredients, // Store the parsed ingredients
           });
 
-          // Fetch the recipe image from Firebase
-          if (recipeData.image_name) {
-            const normalizedImageName = `${recipeData.image_name
-              .toLowerCase()
-              .replace(/\s+/g, "-")}.jpg`;
-
-            try {
-              const imageRef = ref(
-                storage,
-                `Recipe_Pictures/${normalizedImageName}`
-              );
-              const url = await getDownloadURL(imageRef);
-              setImageUrl(url);
-            } catch (error) {
-              console.error("Error fetching image from Firebase:", error);
-              setImageUrl("/images/placeholder.jpg"); // Fallback image
-            }
-          }
-          
+          // Fetch the recipe image using the utility function
+          const url = recipeData.image_name
+            ? await fetchImageUrl(recipeData.image_name)
+            : "/images/placeholder.jpg"; // Fallback image
+          setImageUrl(url);
         } else {
           console.error("Recipe not found");
         }
@@ -80,12 +62,8 @@ const RecipePage = () => {
       return;
     }
 
-    const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's document
-
     try {
-      await updateDoc(userDocRef, {
-        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the `savedRecipes` array
-      });
+      await addToFirestoreArray("users", currentUser.uid, "savedRecipes", recipeId); // Use utility function
       console.log("Recipe saved successfully!");
     } catch (error) {
       console.error("Error saving recipe:", error);
@@ -147,15 +125,6 @@ const RecipePage = () => {
       </div>
     );
   }
-
-  // Handle adding ingredients to the shopping list
-  const handleAddToShoppingList = () => {
-    setIsPopupVisible(true); // Show the popup
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupVisible(false); // Hide the popup
-  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
@@ -253,7 +222,7 @@ const RecipePage = () => {
     {/* Shopping List Popup */}
     {isPopupVisible && (
       <AddToShoppingList
-        recipe={recipe}
+        recipe={{ ...recipe, id: recipeId }}
         onClose={() => setIsPopupVisible(false)}
       />
     )}

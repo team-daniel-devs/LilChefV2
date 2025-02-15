@@ -4,9 +4,13 @@ import { collection, getDocs } from "firebase/firestore"; // Firestore functions
 import { db } from "../firebaseconfig"; // Firebase configuration
 import { Link } from "react-router-dom"; // For navigation
 import FilterPage from "../components/FilterPage"; // Import the updated FilterPage component
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
+import { getAuth } from "firebase/auth"; // Firebase Authentication
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 
 
 const Home = () => {
+  
   const [recipes, setRecipes] = useState([]); // Stores the list of recipes fetched from Firestore
   
   const [currentIndex, setCurrentIndex] = useState(0); // Tracks the index of the currently displayed recipe
@@ -21,6 +25,29 @@ const Home = () => {
   const [opacity, setOpacity] = useState(0); // Dynamic opacity based on translation
   const [text, setText] = useState(""); // Swipe action text
   const [color, setColor] = useState(""); // Swipe action color
+
+  const auth = getAuth(); // Firebase Auth instance
+  const storage = getStorage(); // Firebase Storage instance
+  const currentUser = auth.currentUser; // Get the currently logged-in user
+
+  // Save the recipe to the user's saved recipes in Firestore
+  const handleSaveRecipe = async (recipeId) => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's document
+
+    try {
+      await updateDoc(userDocRef, {
+        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the `savedRecipes` array
+      });
+      console.log("Recipe saved successfully!");
+    } catch (error) {
+      console.error("Error saving recipe:", error);
+    }
+  };
 
   // Fetch recipes from Firestore on component mount
   useEffect(() => {
@@ -116,6 +143,7 @@ const Home = () => {
      // Check if the card was swiped far enough
      if (currentTranslateX.current > 100) {
       // Swipe right
+      handleSaveRecipe(recipes[currentIndex].id);
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
     } else if (currentTranslateX.current < -100) {
       // Swipe left

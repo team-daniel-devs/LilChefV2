@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { fetchUserShoppingList, updateFirestoreDoc, getCurrentUser } from "../utils/firebaseUtils";
 
 const AddToShoppingList = ({ recipe, onClose }) => {
   // State to track selected ingredients
   const [selectedIngredients, setSelectedIngredients] = useState([]);
+  
 
   // Toggle individual ingredient selection
   const handleSelectIngredient = (ingredient) => {
@@ -24,12 +26,47 @@ const AddToShoppingList = ({ recipe, onClose }) => {
     }
   };
 
-  // Add selected ingredients to the shopping list
-  const handleAddToList = () => {
-    console.log("Ingredients added to shopping list:", selectedIngredients);
-    onClose(); // Close the popup
-  };
+  // Add selected ingredients to the shopping list in Firestore
+  const handleAddToList = async () => {
+    const user = getCurrentUser(); // Get the currently logged-in user
 
+    if (!user) {
+      console.error("User not logged in");
+      return;
+    }
+
+    if (!recipe?.id) {
+      console.error("Recipe ID is undefined. Cannot add to shopping list.");
+      return;
+    }
+
+    try {
+      // Fetch the existing shopping list from Firestore
+      const shoppingList = await fetchUserShoppingList(user.uid);
+
+      // Initialize or update the shopping list for the current recipe
+      if (!shoppingList[recipe.id]) {
+        shoppingList[recipe.id] = { ingredients: [] };
+      }
+
+      // Merge selected ingredients with the existing ones, avoiding duplicates
+      shoppingList[recipe.id].ingredients = Array.from(
+        new Set([
+          ...(shoppingList[recipe.id].ingredients || []),
+          ...selectedIngredients,
+        ])
+      );
+
+      // Update the shopping list in Firestore
+      await updateFirestoreDoc("users", user.uid, { shopping_list: shoppingList });
+
+      console.log(`Ingredients added to recipe ID "${recipe.id}":`, selectedIngredients);
+      onClose(); // Close the popup
+    } catch (error) {
+      console.error("Error updating shopping list:", error);
+    }
+  };
+  
   return (
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 flex items-end z-50 ${

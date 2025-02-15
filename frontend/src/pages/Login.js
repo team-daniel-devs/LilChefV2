@@ -21,7 +21,7 @@ const Login = ({ navigation }) => {
       console.log("User logged in:", userCredential.user);
 
       // Send login details to the backend(to login.js in the backend dir) for server-side validation
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +54,7 @@ const Login = ({ navigation }) => {
       {/* Logo Section */}
       <div className="flex justify-center items-center">
         <img
-          src="/images/Logo_no_name.png" // Replace with the correct path to your logo
+          src="/images/logo_better.png" // Replace with the correct path to your logo
           alt="Logo"
           className="w-24 h-24 object-contain"
         />
