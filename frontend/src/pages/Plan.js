@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { onAuthStateChanged, fetchSavedRecipes } from '../utils/firebaseUtils'; 
-import { fetchImageUrl } from '../utils/imageUtils'; 
+import { onAuthStateChanged, fetchSavedRecipes } from '../utils/firebaseUtils';
+import { fetchImageUrl } from '../utils/imageUtils';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { Link } from 'react-router-dom';
 
 /**
- * Initialize the user's weekly plan in Firestore if not present.
+ * initializeWeeklyPlan:
+ * Checks if the user's document has a 'weeklyMeals' field.
+ * If not, it updates the document to create a structure with empty subcategory objects for each day.
  */
 async function initializeWeeklyPlan(userId) {
   const userRef = doc(db, 'users', userId);
   const snap = await getDoc(userRef);
 
   if (!snap.exists()) {
-    // If the user doc doesn't exist at all, you might create it
-    // But presumably, your user doc already exists if they have email, etc.
+    // If the user document doesn't exist, we simply return.
     return;
   }
 
   const data = snap.data();
-  // If 'weeklyMeals' doesn't exist, create it with empty arrays
+  // If 'weeklyMeals' is missing, create it with an object for each day containing Breakfast, Lunch, and Dinner arrays.
   if (!data.weeklyMeals) {
     await updateDoc(userRef, {
       weeklyMeals: {
@@ -37,21 +37,24 @@ async function initializeWeeklyPlan(userId) {
 }
 
 /**
- * Fetch the user's weekly meal plan (the `weeklyMeals` field) from Firestore.
+ * fetchWeeklyPlan:
+ * Retrieves the user's 'weeklyMeals' field from Firestore.
+ * Expected structure: an object with keys for each day.
  */
 async function fetchWeeklyPlan(userId) {
   const userRef = doc(db, 'users', userId);
   const snap = await getDoc(userRef);
   if (!snap.exists()) return null;
-
   const data = snap.data();
   return data.weeklyMeals || null;
 }
 
 const Plan = () => {
-  const [selectedDateRange] = useState('Nov 25 - Dec 1');
+  
 
-  // Weekly meal plan: each day is an array of RECIPE IDs
+  // Local state for the weekly meal plan.
+  // Here, each day is initially represented as an empty array,
+  // but later the fetched document might have subcategory objects.
   const [mealPlan, setMealPlan] = useState({
     Monday: [],
     Tuesday: [],
@@ -62,27 +65,29 @@ const Plan = () => {
     Sunday: [],
   });
 
-  // "My Recipes" from Firebase (saved by the user), containing { id, title, imageUrl, ... }
+  // Local state for "My Recipes" (saved recipes from Firestore)
   const [myRecipes, setMyRecipes] = useState([]);
-  // Track which day we're adding a recipe to
+  // dayToAddTo tracks which day is currently selected for adding a recipe.
+  // NOTE: In this new design, the day is selected via the day list links, so this function may be unused.
   const [dayToAddTo, setDayToAddTo] = useState(null);
 
-  // State for user ID and loading status
+  // Local state for the authenticated user ID and loading status.
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Define the days in the order to be displayed
+  // Define the order in which days should be displayed.
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  // 1) Listen for the currently logged-in user
+  // 1) Listen for authentication changes.
+  // When the user logs in, store their UID and initialize the weekly plan if needed.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(async (user) => {
       if (user) {
         setUserId(user.uid);
-        // Initialize weekly plan if needed
         await initializeWeeklyPlan(user.uid);
       } else {
         setUserId(null);
+        // Clear saved recipes and mealPlan if the user logs out.
         setMyRecipes([]);
         setMealPlan({
           Monday: [],
@@ -99,7 +104,7 @@ const Plan = () => {
     return () => unsubscribe();
   }, []);
 
-  // 2) Once we have userId, fetch the user's weekly plan
+  // 2) Once a user is logged in, fetch the user's weekly meal plan from Firestore.
   useEffect(() => {
     if (!userId) return;
 
@@ -107,22 +112,20 @@ const Plan = () => {
       const plan = await fetchWeeklyPlan(userId);
       if (plan) setMealPlan(plan);
     }
-
     loadPlan();
   }, [userId]);
 
-  // 3) Fetch the saved recipes from Firebase
+  // 3) Fetch the user's saved recipes from Firestore.
+  // For each recipe, retrieve the full image URL or a placeholder.
   useEffect(() => {
     if (!userId) {
       setLoading(false);
       return;
     }
-
     const fetchUserRecipes = async () => {
       try {
         setLoading(true);
         const recipes = await fetchSavedRecipes(userId);
-        // For each recipe, fetch the image URL (or use a placeholder)
         const recipesWithImages = await Promise.all(
           recipes.map(async (recipe) => ({
             ...recipe,
@@ -138,34 +141,32 @@ const Plan = () => {
         setLoading(false);
       }
     };
-
     fetchUserRecipes();
   }, [userId]);
 
   /**
-   * Handler: user chooses a day (e.g., Monday) to add a meal to.
+   * handleAddMealClick:
+   * Sets which day is selected for adding a recipe.
+   * (This function may not be used if you navigate to the daily plan page via links.)
    */
   const handleAddMealClick = (day) => {
     setDayToAddTo(day);
   };
 
   /**
-   * Handler: add a selected recipe from "My Recipes" to the chosen day in local state
-   * AND update Firestore using arrayUnion (storing ONLY the recipe ID).
+   * handleAddRecipeToDay:
+   * Adds the selected recipe from "My Recipes" to the specified day.
+   * It updates both local state and Firestore by storing only the recipe ID.
    */
   const handleAddRecipeToDay = async (recipe) => {
-    if (!dayToAddTo) return;
-
-    // We'll store just the recipe's ID in Firestore
+    if (!dayToAddTo) return; // Only proceed if a day is selected.
     const recipeId = recipe.id;
-
-    // 1) Update local state
+    // 1) Update local state: add recipeId to the array for the selected day.
     setMealPlan((prev) => ({
       ...prev,
       [dayToAddTo]: [...prev[dayToAddTo], recipeId],
     }));
-
-    // 2) Update Firestore
+    // 2) Update Firestore: add recipeId to the weeklyMeals for that day using arrayUnion.
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
@@ -174,25 +175,23 @@ const Plan = () => {
     } catch (error) {
       console.error('Error updating Firestore:', error);
     }
-
+    // Clear the selected day once added.
     setDayToAddTo(null);
   };
 
   /**
-   * Handler: remove a recipe ID from a day in local state AND from Firestore.
+   * handleRemoveMeal:
+   * Removes a recipe ID from the specified day in both local state and Firestore.
    */
   const handleRemoveMeal = async (day, idx) => {
-    // 1) Identify which recipe ID we're removing
     const recipeId = mealPlan[day][idx];
-
-    // 2) Update local state
+    // Update local state: remove the recipe ID from the day's array.
     setMealPlan((prev) => {
       const updatedDay = [...prev[day]];
       updatedDay.splice(idx, 1);
       return { ...prev, [day]: updatedDay };
     });
-
-    // 3) Update Firestore
+    // Update Firestore: remove the recipe ID using arrayRemove.
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
@@ -203,7 +202,7 @@ const Plan = () => {
     }
   };
 
-  // Render the My Recipes section based on loading or empty state
+  // Render "My Recipes" section based on loading state and available recipes.
   let myRecipesSection;
   if (loading) {
     myRecipesSection = (
@@ -236,18 +235,17 @@ const Plan = () => {
     );
   }
 
-
   return (
     <div className="p-4 max-w-md mx-auto">
-      {/* Header */}
+      {/* Header section */}
       <header className="mb-4">
         <div className="flex flex-col items-center text-center">
           <h1 className="text-xl font-semibold text-gray-800">Meal Planner</h1>
-          <p className="text-sm text-gray-500">{selectedDateRange}</p>
+          
         </div>
       </header>
 
-      {/* My Recipes Section (same as old plan.js) */}
+      {/* My Recipes Section */}
       <section className="bg-white rounded shadow p-4 mb-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-md font-semibold text-gray-800">My recipes</h3>
@@ -256,7 +254,7 @@ const Plan = () => {
         {myRecipesSection}
       </section>
 
-      {/* Day list: clicking a day navigates to the new DailyPlan page */}
+      {/* Day list section: Clicking a day navigates to the DailyPlan page */}
       <section className="bg-white rounded shadow p-4">
         <ul className="space-y-3">
           {dayOrder.map((day) => (
