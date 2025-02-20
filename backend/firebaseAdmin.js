@@ -5,69 +5,67 @@ const { firebaseAdminInitialized } = require('./firebaseAdmin');
 
 // Uncomment this block for production to use Secret Manager
 // -----------------------------------------------------------
-// const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
-// 
-// // Production: Retrieve service account via Secret Manager
-// async function getFirebaseServiceAccountKey() {
-//   try {
-//     const client = new SecretManagerServiceClient();
-//     const [version] = await client.accessSecretVersion({
-//       name: 'projects/cookaing-da7d0/secrets/firebase-service-account-key/versions/latest'
-//     });
-// 
-//     if (!version || !version.payload || !version.payload.data) {
-//       console.error('Error retrieving secret version');
-//       return null;
-//     }
-// 
-//     const credentials = JSON.parse(version.payload.data.toString('utf8'));
-//     
-//     // Fix formatting of the secret key (replace escaped newlines)
-//     credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
-//     
-//     if (!credentials.project_id || !credentials.private_key || !credentials.client_email) {
-//       console.error('Error parsing secret data');
-//       return null;
-//     }
-// 
-//     console.log('Successfully retrieved and parsed secret data');
-//     return credentials;
-// 
-//   } catch (error) {
-//     console.error('Error retrieving secret:', error);
-//     return null;
-//   }
-// }
-// 
-// async function initializeFirebaseAdminProduction() {
-//   if (admin.apps.length) {
-//     return admin;
-//   }
-// 
-//   try {
-//     const serviceAccount = await getFirebaseServiceAccountKey();
-//     admin.initializeApp({
-//       credential: admin.credential.cert(serviceAccount)
-//     });
-//     console.log('Firebase Admin initialized successfully (Production)');
-//     return admin;
-//   } catch (error) {
-//     console.error('Error initializing Firebase Admin:', error);
-//     throw error;
-//   }
-// }
-// 
-// // For production, you would export like this:
-// // const adminPromise = initializeFirebaseAdminProduction();
-// // module.exports = {
-// //   admin,
-// //   firebaseAdminInitialized: adminPromise
-// // };
-// 
+async function getFirebaseServiceAccountKey() {
+  try{
+      const client = new SecretManagerServiceClient();
+      const [version] = await client.accessSecretVersion({
+          name: 'projects/cookaing-da7d0/secrets/firebase-service-account-key/versions/latest'
+      });
+
+      if (!version || !version.payload || !version.payload.data) {
+          console.error('Error retrieving secret version');
+          return null;
+      }
+
+      const credentials =  JSON.parse(version.payload.data.toString('utf8'));
+      
+      //fix formatting of the secret key
+      console.log(credentials);
+      credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+      if (!credentials.project_id || !credentials.private_key || !credentials.client_email) {
+          console.error('Error parsing secret data');
+          return null;
+      }
+      console.log('Successfully retrieved and parsed secret data');
+      return credentials;
+
+  } catch (error) {
+      console.error('Error retrieving secret:', error);
+      return null;
+  }
+}
+
+async function initializeFirebaseAdmin() {
+  if (admin.apps.length) {
+      return admin;
+  }
+
+  try {
+      const serviceAccount = await getFirebaseServiceAccountKey();
+      admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount)
+      });
+      console.log('Firebase Admin initialized successfully');
+      return admin;
+  } catch (error) {
+      console.error('Error initializing Firebase Admin:', error);
+      throw error;
+  }
+}
+
+
+const adminPromise = initializeFirebaseAdmin();
+
+module.exports = {
+  admin,
+  firebaseAdminInitialized: adminPromise
+};
+
 // -----------------------------------------------------------
 
 // Local Development: Use the locally stored service account JSON file
 // -------------------------------------------------------------------
+/*
 const serviceAccount = require('./firebaseServiceAccountKey.json'); // Local credentials file
 
 console.log('Initializing Firebase Admin locally...');
@@ -83,6 +81,8 @@ module.exports = {
     admin,
     firebaseAdminInitialized: Promise.resolve(admin)
   };
+
+*/
 
 // -------------------------------------------------------------------
 // To switch between production and local development:
