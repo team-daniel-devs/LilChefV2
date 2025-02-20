@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Saved from './pages/Saved';
-import Taskbar from './components/Navbar'; // Import the Taskbar component
+import Taskbar from './components/Navbar';
 import RecipePage from './pages/RecipePage';
 import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
@@ -13,6 +13,7 @@ import Mobile from "./website/Mobile";
 import Grocery from './pages/Grocery';
 import Search from './pages/Search';
 import Plan from './pages/Plan';
+import DailyPlan from './pages/DailyPlan'
 
 testStorageConnection();
 
@@ -89,6 +90,7 @@ const App = () => {
           <Route path="/grocery" element={<Grocery />} />
           <Route path="/search" element={<Search />} />
           <Route path="/plan" element={<Plan />} />
+          <Route path="/daily/:day" element={<DailyPlan />} />
         </Routes>
 
         {/* Conditionally render the Taskbar */}

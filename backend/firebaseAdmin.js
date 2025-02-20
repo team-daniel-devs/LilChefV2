@@ -79,7 +79,10 @@ admin.initializeApp({
 console.log('Firebase Admin initialized successfully (Local)');
 
 // Export the admin instance for local development
-module.exports = admin;
+module.exports = {
+    admin,
+    firebaseAdminInitialized: Promise.resolve(admin)
+  };
 
 // -------------------------------------------------------------------
 // To switch between production and local development:
