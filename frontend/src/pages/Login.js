@@ -5,7 +5,6 @@ import Heading from "../components/Heading"; // Reusable heading component
 import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase Authentication
 import { auth } from "../firebaseconfig.js"; // Firebase configuration
 
-const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
 
 const Login = ({ navigation }) => {
   // State variables to store user input for email and password
@@ -23,7 +22,7 @@ const Login = ({ navigation }) => {
       console.log("User logged in:", userCredential.user);
 
       // Send login details to the backend(to login.js in the backend dir) for server-side validation
-      const response = await fetch(`${API_URL}/login`, {
+      const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
