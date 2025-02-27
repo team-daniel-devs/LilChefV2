@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
+
 const SignUp = () => {
   // States for form fields
   const [firstName, setFirstName] = useState("");
@@ -14,7 +16,7 @@ const SignUp = () => {
     e.preventDefault(); // Prevent default form submission behavior
     try {
       // Send form data to the backend (to register.js in the backend dir)
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch(`${API_URL}/register`, {
         method: "POST", // HTTP method
         headers: {
           "Content-Type": "application/json", // Specify content type
