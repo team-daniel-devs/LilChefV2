@@ -5,6 +5,7 @@ import Heading from "../components/Heading"; // Reusable heading component
 import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase Authentication
 import { auth } from "../firebaseconfig.js"; // Firebase configuration
 
+
 const Login = ({ navigation }) => {
   // State variables to store user input for email and password
   const [email, setEmail] = useState("");

@@ -14,7 +14,7 @@ const SignUp = () => {
     e.preventDefault(); // Prevent default form submission behavior
     try {
       // Send form data to the backend (to register.js in the backend dir)
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch('https://cookaing-da7d0.uc.r.appspot.com/register', {
         method: "POST", // HTTP method
         headers: {
           "Content-Type": "application/json", // Specify content type
