@@ -26,6 +26,23 @@ const SignUp = () => {
         }),
       });
 
+      
+      //if running locally
+      /*
+      const response = await fetch('http://localhost:3000/register', {
+        method: "POST", // HTTP method
+        headers: {
+          "Content-Type": "application/json", // Specify content type
+        },
+        body: JSON.stringify({
+          first_name: firstName, // Send first name
+          email: email, // Send email
+          password: password, // Send password
+        }),
+      });
+      */
+
+
       console.log("Response status:", response.status); // Log response status
 
       const responseData = await response.json(); // Parse JSON response

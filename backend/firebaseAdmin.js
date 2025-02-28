@@ -3,8 +3,11 @@ const { SecretManagerServiceClient } = require('@google-cloud/secret-manager'); 
 const express = require('express');
 const { firebaseAdminInitialized } = require('./firebaseAdmin');
 
+
+
 // Uncomment this block for production to use Secret Manager
 // -----------------------------------------------------------
+
 async function getFirebaseServiceAccountKey() {
   try{
       const client = new SecretManagerServiceClient();
