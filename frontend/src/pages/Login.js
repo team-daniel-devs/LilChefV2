@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // For navigation after login
 import CustomButton from "../components/CustomButton"; // Reusable button component
 import Heading from "../components/Heading"; // Reusable heading component
-import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase Authentication
+import { signInWithEmailAndPassword, getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth"; // Firebase Authentication
 import { auth } from "../firebaseconfig.js"; // Firebase configuration
 
 
@@ -34,7 +34,11 @@ const Login = ({ navigation }) => {
         }),
       });
       */
-      const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/login", {
+      
+
+      //if running locally
+  
+      const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,6 +48,7 @@ const Login = ({ navigation }) => {
           password: password,
         }),
       });
+      
       console.log("Response status:", response.status); // Log the server's response status
 
       const responseData = await response.json(); // Parse the JSON response from the server
@@ -60,6 +65,38 @@ const Login = ({ navigation }) => {
       alert("Something went wrong", error.message); // Display a generic error message
     }
   };
+
+  // Handles login with Google OAuth
+  const handleGoogleLogin = async () => {
+    const authInstance = getAuth();
+    const provider = new GoogleAuthProvider();
+    try {
+      // Launch the Google sign-in popup
+      const result = await signInWithPopup(authInstance, provider);
+      // Retrieve the user's ID token to send to backend for verification
+      const idToken = await result.user.getIdToken();
+      console.log("Google ID Token:", idToken);
+
+      // Send the idToken to your backend endpoint for login
+      const response = await fetch("http://localhost:3000/google-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        navigate("/home");
+      } else {
+        alert("Error", data.message || "Failed to sign in with Google");
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error);
+      alert("Google login failed: " + error.message);
+    }
+  };
+
 
   return (
     <div className="bg-white w-full h-screen px-7 flex flex-col items-center justify-center">
@@ -112,6 +149,17 @@ const Login = ({ navigation }) => {
           />
         </div>
       </form>
+
+      {/* Google Login Button */}
+      <div className="mt-8">
+        <CustomButton
+          bgColor="bg-blue-600"         // Blue background for Google
+          textColor="text-white"         // White text
+          content="Login with Google"    // Button label
+          onClick={handleGoogleLogin}    // onClick handler for Google login
+          type="button"                  // Button type (non-submit)
+        />
+      </div>
     </div>
   );
 };
