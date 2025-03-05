@@ -15,7 +15,7 @@ const SignUp = () => {
     e.preventDefault(); // Prevent default form submission behavior
     try {
       // Send form data to the backend (to register.js in the backend dir)
-      /*
+      
       const response = await fetch('https://cookaing-da7d0.uc.r.appspot.com/register', {
         method: "POST", // HTTP method
         headers: {
@@ -27,11 +27,11 @@ const SignUp = () => {
           password: password, // Send password
         }),
       });
-      */
+      
 
       
       //if running locally
-
+      /*
       const response = await fetch('http://localhost:3000/register', {
         method: "POST", // HTTP method
         headers: {
@@ -43,7 +43,7 @@ const SignUp = () => {
           password: password, // Send password
         }),
       });
-      
+      */
 
 
       console.log("Response status:", response.status); // Log response status

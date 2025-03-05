@@ -7,7 +7,7 @@ const { firebaseAdminInitialized } = require('./firebaseAdmin');
 
 // Uncomment this block for production to use Secret Manager
 // -----------------------------------------------------------
-/*
+
 async function getFirebaseServiceAccountKey() {
   try{
       const client = new SecretManagerServiceClient();
@@ -63,13 +63,13 @@ module.exports = {
   admin,
   firebaseAdminInitialized: adminPromise
 };
-*/
+
 
 // -----------------------------------------------------------
 
 // Local Development: Use the locally stored service account JSON file
 // -------------------------------------------------------------------
-
+/*
 const serviceAccount = require('./firebaseServiceAccountKey.json'); // Local credentials file
 
 console.log('Initializing Firebase Admin locally...');
@@ -85,7 +85,7 @@ module.exports = {
     admin,
     firebaseAdminInitialized: Promise.resolve(admin)
   };
-
+*/
 
 // -------------------------------------------------------------------
 // To switch between production and local development:

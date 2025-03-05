@@ -22,7 +22,7 @@ const Login = ({ navigation }) => {
       console.log("User logged in:", userCredential.user);
 
       // Send login details to the backend(to login.js in the backend dir) for server-side validation
-      /*
+      
       const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/login", {
         method: "POST",
         headers: {
@@ -33,11 +33,11 @@ const Login = ({ navigation }) => {
           password: password,
         }),
       });
-      */
+      
       
 
       //if running locally
-  
+      /*
       const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: {
@@ -48,6 +48,7 @@ const Login = ({ navigation }) => {
           password: password,
         }),
       });
+      */
       
       console.log("Response status:", response.status); // Log the server's response status
 
