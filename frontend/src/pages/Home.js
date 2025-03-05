@@ -1,47 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
-import RecipeCard from "../components/RecipeCard"; // RecipeCard component to display recipe details
-import { collection, getDocs } from "firebase/firestore"; // Firestore functions
-import { db } from "../firebaseconfig"; // Firebase configuration
-import { Link } from "react-router-dom"; // For navigation
-import FilterPage from "../components/FilterPage"; // Import the updated FilterPage component
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"; // Firebase Firestore methods
-import { getAuth } from "firebase/auth"; // Firebase Authentication
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
-
+import RecipeCard from "../components/RecipeCard";
+import { collection, getDocs, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "../firebaseconfig";
+import { Link } from "react-router-dom";
+import FilterPage from "../components/FilterPage";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const Home = () => {
-  
-  const [recipes, setRecipes] = useState([]); // Stores the list of recipes fetched from Firestore
-  
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks the index of the currently displayed recipe
+  const [recipes, setRecipes] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-
   const containerRef = useRef(null);
-  const startX = useRef(0);  // Starting X position
-  const startY = useRef(0);  // Starting Y position
-  const currentTranslateX = useRef(0);  // Current translateX during dragging
-  const currentTranslateY = useRef(0);  // Current translateY during dragging
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const currentTranslateX = useRef(0);
+  const currentTranslateY = useRef(0);
+  const [opacity, setOpacity] = useState(0);
+  const [text, setText] = useState("");
+  const [color, setColor] = useState("");
+  const auth = getAuth();
+  const storage = getStorage();
+  const currentUser = auth.currentUser;
 
-  const [opacity, setOpacity] = useState(0); // Dynamic opacity based on translation
-  const [text, setText] = useState(""); // Swipe action text
-  const [color, setColor] = useState(""); // Swipe action color
-
-  const auth = getAuth(); // Firebase Auth instance
-  const storage = getStorage(); // Firebase Storage instance
-  const currentUser = auth.currentUser; // Get the currently logged-in user
-
-  // Save the recipe to the user's saved recipes in Firestore
   const handleSaveRecipe = async (recipeId) => {
     if (!currentUser) {
       console.error("User not logged in");
       return;
     }
-
-    const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's document
+    const userDocRef = doc(db, "users", currentUser.uid);
 
     try {
       await updateDoc(userDocRef, {
-        savedRecipes: arrayUnion(recipeId), // Add the recipe ID to the `savedRecipes` array
+        savedRecipes: arrayUnion(recipeId),
       });
       console.log("Recipe saved successfully!");
     } catch (error) {
@@ -49,22 +40,18 @@ const Home = () => {
     }
   };
 
-  // Fetch recipes from Firestore on component mount
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        // Get all documents(recipes) from the 'recipes' Firestore collection
         const querySnapshot = await getDocs(collection(db, "recipes"));
 
-        // Map through each document and structure the data
         const fetchedRecipes = querySnapshot.docs.map((doc) => {
           const data = doc.data();
 
-          // Safely parse the `ingredients` field, converting JSON string to an array
           let ingredients = [];
           try {
             ingredients = data.ingredients
-              ? JSON.parse(data.ingredients.replace(/'/g, '"')) // Convert single quotes to double quotes
+              ? JSON.parse(data.ingredients.replace(/'/g, '"'))
               : [];
           } catch (parseError) {
             console.error(
@@ -72,64 +59,58 @@ const Home = () => {
               data.title,
               data.ingredients
             );
-            ingredients = []; // Default to an empty array if parsing fails
+            ingredients = [];
           }
 
-          // Return a structured recipe object
           return {
-            id: doc.id, // Recipe ID
-            title: data.title || "Untitled Recipe", // Fallback title
-            prepTime: data.prepTime || "N/A", // Preparation time
-            cookTime: data.cookTime || "N/A", // Cooking time
-            servingCost: data.servingCost || "N/A", // Cost per serving
-            nutrition: data.nutrition || {}, // Nutrition details
-            ingredients: ingredients.slice(0, 5), // Display the first 5 ingredients
-            totalIngredients: ingredients.length, // Total number of ingredients
-            imageName: data.image_name || null, // Image name
+            id: doc.id,
+            title: data.title || "Untitled Recipe",
+            prepTime: data.prepTime || "N/A",
+            cookTime: data.cookTime || "N/A",
+            servingCost: data.servingCost || "N/A",
+            nutrition: data.nutrition || {},
+            ingredients: ingredients.slice(0, 5),
+            totalIngredients: ingredients.length,
+            imageName: data.image_name || null,
           };
         });
 
-        // Update the state with the fetched recipes
         setRecipes(fetchedRecipes);
       } catch (error) {
-        console.error("Error fetching recipes:", error); // Log any errors
+        console.error("Error fetching recipes:", error);
       }
     };
 
-    fetchRecipes(); // Call the function to fetch recipes
-  }, []); // Empty dependency array ensures this runs only once
+    fetchRecipes();
+  }, []);
 
-  // Swipe handlers
   const handleTouchStart = (e) => {
-    startX.current = e.touches[0].clientX; // Record initial touch X position
-    startY.current = e.touches[0].clientY; // Record initial touch Y position
-    containerRef.current.style.transition = "none"; // Disable transition during dragging
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    if (containerRef.current) {
+      containerRef.current.style.transition = "none";
+    }
   };
 
   const handleTouchMove = (e) => {
-    const deltaX = e.touches[0].clientX - startX.current;  // Distance moved horizontally
-    const deltaY = e.touches[0].clientY - startY.current; // Distance moved vertically
+    const deltaX = e.touches[0].clientX - startX.current;
+    const deltaY = e.touches[0].clientY - startY.current;
+    currentTranslateX.current += deltaX;
+    currentTranslateY.current += deltaY;
 
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate(${currentTranslateX.current}px, ${currentTranslateY.current}px) rotate(${currentTranslateX.current / 20}deg)`;
+    }
 
-    currentTranslateX.current += deltaX; // Update translateX
-    currentTranslateY.current += deltaY; // Update translateY
-
-    // Apply the current translation to the card
-    containerRef.current.style.transform = `
-      translate(${currentTranslateX.current}px, ${currentTranslateY.current}px)
-      rotate(${currentTranslateX.current / 20}deg)
-    `;
-
-    // Calculate opacity based on horizontal drag distance
-    const maxDistance = 100; // Maximum distance for full opacity
-    setOpacity(Math.min(Math.abs(currentTranslateX.current) / maxDistance, 1)); // Clamp opacity between 0 and 1
+    const maxDistance = 100;
+    setOpacity(Math.min(Math.abs(currentTranslateX.current) / maxDistance, 1));
 
     if (currentTranslateX.current > 0) {
       setText("Save");
-      setColor("lime");
+      setColor("#0E9A61");
     } else if (currentTranslateX.current < 0) {
-      setText("Discard");
-      setColor("red");
+      setText("Dislike");
+      setColor("#D83A52");
     } else {
       setText("");
       setColor("");
@@ -140,74 +121,67 @@ const Home = () => {
   };
 
   const handleTouchEnd = () => {
-     // Check if the card was swiped far enough
-     if (currentTranslateX.current > 100) {
-      // Swipe right
+    if (currentTranslateX.current > 100) {
       handleSaveRecipe(recipes[currentIndex].id);
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
     } else if (currentTranslateX.current < -100) {
-      // Swipe left
       setCurrentIndex((prev) => (prev + 1) % recipes.length);
     }
 
-    // Reset translate values
     currentTranslateX.current = 0;
     currentTranslateY.current = 0;
 
-    // Smoothly reset card position
-    containerRef.current.style.transition = "transform 0.3s ease";
-    containerRef.current.style.transform = "translate(0px, 0px) rotate(0deg)";
+    if (containerRef.current) {
+      containerRef.current.style.transition = "transform 0.3s ease";
+      containerRef.current.style.transform = "translate(0px, 0px) rotate(0deg)";
+    }
 
-    // Reset opacity after swipe ends
     setOpacity(0);
     setText("");
     setColor("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center overflow-hidden bg-gray-100">
-      <div className="w-full bg-white shadow flex justify-between items-center px-4 py-3">
-        <button
-          className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow z-10"
-          onClick={() => setIsFilterVisible(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="white"
-            className="w-5 h-5 mr-2"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-          </svg>
-          Sort
-        </button>
-      </div>
-
-      <div
-        className="recipe-container relative -mt-20"
-        ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-          {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
-          <div className="recipe-card" key={recipe.id}>
-            {/* Link to the detailed recipe page */}
-            <Link to={`/recipepage/${recipe.id}`}>
-              <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color} />
-            </Link>
+    <div className="min-h-screen flex items-center justify-center bg-white mt-[-5vh]">
+      <div className="w-full max-w-3xl flex flex-col overflow-hidden bg-white shadow-lg rounded-lg">
+        {/* Header Section */}
+        <header className="relative h-16 flex items-center justify-center mb-3">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10">
+            <img src="/images/LogoNoText.png" alt="Logo" className="h-16 w-16 object-contain" />
           </div>
-        ))}
-      </div>
+          <button
+            className="absolute top-3 right-12 flex items-center bg-[#0E9A61] text-white px-2.5 py-2.5 rounded-2xl text-sm font-semibold shadow z-10"
+            onClick={() => setIsFilterVisible(true)}
+          >
+            <img src="/images/Filter.png" alt="Filter" className="w-5 h-5" />
+          </button>
+        </header>
+  
+        {/* Main Content */}
+        <main className="flex-1 relative bg-white">
+          <div
+            className="recipe-container absolute inset-0"
+            ref={containerRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
+              <div className="recipe-card" key={recipe.id}>
+                <Link to={`/recipepage/${recipe.id}`}>
+                  <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color}/>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </main>
 
-      <FilterPage
-        isVisible={isFilterVisible}
-        onClose={() => setIsFilterVisible(false)}
-      />
+  
+        <FilterPage isVisible={isFilterVisible} onClose={() => setIsFilterVisible(false)} />
+      </div>
     </div>
   );
+  
 };
 
 export default Home;
