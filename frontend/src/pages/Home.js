@@ -96,7 +96,6 @@ const Home = () => {
             (recipe) => !savedRecipeIds.includes(recipe.id)
           );
         }
-
         setRecipes(fetchedRecipes);
       } catch (error) {
         console.error("Error fetching recipes:", error);
@@ -104,13 +103,14 @@ const Home = () => {
     };
 
     fetchRecipes();
-  }, [currentUser]);
+  }, []);
 
-  // Touch event handlers for swiping the recipe cards.
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
-    containerRef.current.style.transition = "none";
+    if (containerRef.current) {
+      containerRef.current.style.transition = "none";
+    }
   };
 
   const handleTouchMove = (e) => {
@@ -118,20 +118,19 @@ const Home = () => {
     const deltaY = e.touches[0].clientY - startY.current;
     currentTranslateX.current += deltaX;
     currentTranslateY.current += deltaY;
-
-    containerRef.current.style.transform = `
-      translate(${currentTranslateX.current}px, ${currentTranslateY.current}px)
-      rotate(${currentTranslateX.current / 20}deg)
-    `;
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate(${currentTranslateX.current}px, ${currentTranslateY.current}px) rotate(${currentTranslateX.current / 20}deg)`;
+    }
 
     const maxDistance = 100;
     setOpacity(Math.min(Math.abs(currentTranslateX.current) / maxDistance, 1));
+
     if (currentTranslateX.current > 0) {
       setText("Save");
-      setColor("lime");
+      setColor("#0E9A61");
     } else if (currentTranslateX.current < 0) {
-      setText("Discard");
-      setColor("red");
+      setText("Dislike");
+      setColor("#D83A52");
     } else {
       setText("");
       setColor("");
@@ -142,67 +141,65 @@ const Home = () => {
 
   const handleTouchEnd = () => {
     if (currentTranslateX.current > 100) {
-      // Swipe right: save recipe.
       handleSaveRecipe(recipes[currentIndex].id);
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
     } else if (currentTranslateX.current < -100) {
-      // Swipe left: skip recipe.
       setCurrentIndex((prev) => (prev + 1) % recipes.length);
     }
+
     currentTranslateX.current = 0;
     currentTranslateY.current = 0;
-    containerRef.current.style.transition = "transform 0.3s ease";
-    containerRef.current.style.transform = "translate(0px, 0px) rotate(0deg)";
+
+    if (containerRef.current) {
+      containerRef.current.style.transition = "transform 0.3s ease";
+      containerRef.current.style.transform = "translate(0px, 0px) rotate(0deg)";
+    }
     setOpacity(0);
     setText("");
     setColor("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center overflow-hidden bg-gray-100">
-      {/* Header with a Sort button */}
-      <div className="w-full bg-white shadow flex justify-between items-center px-4 py-3">
-        <button
-          className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow z-10"
-          onClick={() => setIsFilterVisible(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="white"
-            className="w-5 h-5 mr-2"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-          </svg>
-          Sort
-        </button>
-      </div>
-
-      {/* Swipeable Recipe Container */}
-      <div
-        className="recipe-container relative -mt-20"
-        ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
-          <div className="recipe-card" key={recipe.id}>
-            <Link to={`/recipepage/${recipe.id}`}>
-              <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color} />
-            </Link>
+    <div className="min-h-screen flex items-center justify-center bg-white mt-[-5vh]">
+      <div className="w-full max-w-3xl flex flex-col overflow-hidden bg-white shadow-lg rounded-lg">
+        {/* Header Section */}
+        <header className="relative h-16 flex items-center justify-center mb-3">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10">
+            <img src="/images/LogoNoText.png" alt="Logo" className="h-16 w-16 object-contain" />
           </div>
-        ))}
-      </div>
+          <button
+            className="absolute top-3 right-12 flex items-center bg-[#0E9A61] text-white px-2.5 py-2.5 rounded-2xl text-sm font-semibold shadow z-10"
+            onClick={() => setIsFilterVisible(true)}
+          >
+            <img src="/images/Filter.png" alt="Filter" className="w-5 h-5" />
+          </button>
+        </header>
+  
+        {/* Main Content */}
+        <main className="flex-1 relative bg-white">
+          <div
+            className="recipe-container absolute inset-0"
+            ref={containerRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
+              <div className="recipe-card" key={recipe.id}>
+                <Link to={`/recipepage/${recipe.id}`}>
+                  <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color}/>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </main>
 
-      <FilterPage
-        isVisible={isFilterVisible}
-        onClose={() => setIsFilterVisible(false)}
-      />
+  
+        <FilterPage isVisible={isFilterVisible} onClose={() => setIsFilterVisible(false)} />
+      </div>
     </div>
   );
+  
 };
 
 export default Home;

@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth"; // Firebase Authentication
 import AddToShoppingList from "../components/AddToShoppingList"; // Component for adding ingredients to a shopping list
 import { fetchImageUrl } from "../utils/imageUtils";
 import { fetchFirestoreDoc, addToFirestoreArray } from "../utils/firebaseUtils";
+import SaveButton from "../components/SaveButton";
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
@@ -54,21 +55,6 @@ const RecipePage = () => {
 
     fetchRecipe();
   }, [recipeId]); // Re-fetch if `recipeId` changes
-
-  // Save the recipe to the user's saved recipes in Firestore
-  const handleSaveRecipe = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-
-    try {
-      await addToFirestoreArray("users", currentUser.uid, "savedRecipes", recipeId); // Use utility function
-      console.log("Recipe saved successfully!");
-    } catch (error) {
-      console.error("Error saving recipe:", error);
-    }
-  };
 
   // Enable scrolling when the component is mounted, disable when unmounted
   useEffect(() => {
@@ -128,43 +114,52 @@ const RecipePage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
-    {/* Image Section */}
-    <div className="relative">
-      <img
-        src={imageUrl || "/images/placeholder.jpg"}
-        alt={recipe.title || "Recipe"}
-        className="w-full h-64 object-cover"
-      />
-      <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-        <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
-      </button>
-      <button onClick={handleSaveRecipe} className="absolute top-4 right-4">
-        <img src="/images/save.png" alt="Save" className="w-8 h-8" />
-      </button>
-    </div>
+      {/* Image Section */}
+      <div className="relative">
+        <img
+          src={imageUrl || "/images/placeholder.jpg"}
+          alt={recipe.title || "Recipe"}
+          className="w-full h-80 object-cover"
+        />
+        <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
+          <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
+        </button>
+
+        {/* Save Button Component - Ensures Exact Positioning */}
+        <div className="absolute top-4 right-4">
+          <SaveButton currentUser={currentUser} recipeId={recipeId} size={32} />
+        </div>
+      </div>
+
+
 
     {/* Recipe Details */}
     <div className="px-6 py-4">
-      <h2 className="text-2xl font-bold">{recipe.title || "Untitled Recipe"}</h2>
-      <p className="text-sm text-gray-500">By: {recipe.author || "Unknown"}</p>
-      <div className="flex items-center mt-2 space-x-4">
-        <span className="text-sm text-gray-600">{recipe.prepTime || "N/A"} mins</span>
-        <span className="text-sm text-gray-600">{recipe.level || "Easy"}</span>
-        <span className="text-sm text-gray-600">
-          {recipe.nutrition?.calories || "N/A"} cal
-        </span>
-      </div>
+  <h2 className="text-2xl pt-4 font-semibold">{recipe.title || "Untitled Recipe"}</h2>
+  <p className="text-sm text-gray-500">By: {recipe.author || "Unknown"}</p>
+  
+  {/* Inline images with text */}
+    <div className="flex items-center mt-2 space-x-4">
+      <img src="/images/clock.png" alt="Prep time" className="w-4 h-4" />
+      <span className="text-sm text-gray-600">{recipe.prepTime || "N/A"} mins</span>
+      
+      <img src="/images/level.png" alt="Level" className="w-4 h-4" />
+      <span className="text-sm text-gray-600">{recipe.level || "Easy"}</span>
+      
+      <img src="/images/cal.png" alt="Calories" className="w-4 h-4" />
+      <span className="text-sm text-gray-600">{recipe.nutrition?.calories || "N/A"} cal</span>
     </div>
+  </div>
 
     {/* Tabs Section */}
-    <div className="flex justify-center mt-4 space-x-4">
+    <div className="flex justify-evenly mt-4 space-x-4">
       {tabs.map((tab, index) => (
         <button
           key={tab}
           className={`text-sm ${
             activeTab === index
-              ? "text-green-500 border-b-2 border-green-500"
-              : "text-gray-500"
+              ? "text-[#0E9A61] border-b-2 border-[#0E9A61]"
+              : "text-blackk"
           }`}
           onClick={() => scrollToTab(index)}
         >
@@ -176,10 +171,25 @@ const RecipePage = () => {
     {/* Tab Content */}
     <div
       ref={scrollContainerRef}
-      className="mt-4 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+      className="mt-6 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
     >
       {/* Ingredients */}
       <div className="min-w-full snap-center px-6">
+        <h3 className="text-lg font-semibold">Description:</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          {recipe.description || "No description available."}
+        </p>
+
+        {/* Shopping List Button */}
+        <div className="flex justify-center">
+        <button
+          onClick={() => setIsPopupVisible(true)}
+          className="w-7/12 bg-white border-2 border-[#0E9A61] mt-1 mb-4 py-1 text-md rounded-3xl"
+          >
+          Add to Shopping List
+        </button>
+        </div>
+
         <h3 className="text-lg font-semibold">Ingredients</h3>
         <ul className="list-disc ml-6">
           {recipe.ingredients.map((ingredient, index) => (
@@ -209,15 +219,6 @@ const RecipePage = () => {
         </ul>
       </div>
     </div>
-
-    {/* Shopping List Button */}
-    <button
-      onClick={() => setIsPopupVisible(true)}
-      className="fixed bottom-0 left-0 w-full py-3 bg-green-500 text-white text-lg font-bold mb-5"
-      style={{ bottom: "60px" }} // Adjust this value to the height of your navbar
-    >
-      Add to Shopping List
-    </button>
 
     {/* Shopping List Popup */}
     {isPopupVisible && (
