@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth"; // Firebase Authentication
 import AddToShoppingList from "../components/AddToShoppingList"; // Component for adding ingredients to a shopping list
 import { fetchImageUrl } from "../utils/imageUtils";
 import { fetchFirestoreDoc, addToFirestoreArray } from "../utils/firebaseUtils";
+import SaveButton from "../components/SaveButton";
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
@@ -54,21 +55,6 @@ const RecipePage = () => {
 
     fetchRecipe();
   }, [recipeId]); // Re-fetch if `recipeId` changes
-
-  // Save the recipe to the user's saved recipes in Firestore
-  const handleSaveRecipe = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-
-    try {
-      await addToFirestoreArray("users", currentUser.uid, "savedRecipes", recipeId); // Use utility function
-      console.log("Recipe saved successfully!");
-    } catch (error) {
-      console.error("Error saving recipe:", error);
-    }
-  };
 
   // Enable scrolling when the component is mounted, disable when unmounted
   useEffect(() => {
@@ -128,20 +114,24 @@ const RecipePage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
-    {/* Image Section */}
-    <div className="relative">
-      <img
-        src={imageUrl || "/images/placeholder.jpg"}
-        alt={recipe.title || "Recipe"}
-        className="w-full h-80 object-cover"
-      />
-      <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-        <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
-      </button>
-      <button onClick={handleSaveRecipe} className="absolute top-4 right-4">
-        <img src="/images/save.png" alt="Save" className="w-8 h-8" />
-      </button>
-    </div>
+      {/* Image Section */}
+      <div className="relative">
+        <img
+          src={imageUrl || "/images/placeholder.jpg"}
+          alt={recipe.title || "Recipe"}
+          className="w-full h-80 object-cover"
+        />
+        <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
+          <img src="/images/backarrow.png" alt="Back" className="w-8 h-8" />
+        </button>
+
+        {/* Save Button Component - Ensures Exact Positioning */}
+        <div className="absolute top-4 right-4">
+          <SaveButton currentUser={currentUser} recipeId={recipeId} size={32} />
+        </div>
+      </div>
+
+
 
     {/* Recipe Details */}
     <div className="px-6 py-4">
@@ -181,7 +171,7 @@ const RecipePage = () => {
     {/* Tab Content */}
     <div
       ref={scrollContainerRef}
-      className="mt-4 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+      className="mt-6 flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
     >
       {/* Ingredients */}
       <div className="min-w-full snap-center px-6">
