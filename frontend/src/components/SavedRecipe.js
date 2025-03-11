@@ -1,35 +1,56 @@
 import React from "react";
 import { Link } from 'react-router-dom';
+import SaveButton from '../components/SaveButton.js'
 
-const SavedRecipe = ({ recipeId, title, image, likes = 0, cookingTime = "N/A" }) => {
+const SavedRecipe = ({ recipeId, title, image, stars = 0, cookingTime = "N/A" }) => {
   return (
-    <div className="relative w-full aspect-square bg-gray-200 overflow-hidden rounded-lg">
-      <Link to={`/recipepage/${recipeId}`}>
-      <img
-        src={image}
-        alt={title}
-        className="absolute w-full h-full object-cover"
-      />
+    <div className="w-full">
+      {/* Main square with image and save button */}
+      <div className="relative w-full aspect-square bg-gray-200 overflow-hidden rounded-3xl">
+        <Link to={`/recipepage/${recipeId}`}>
+          <img
+            src={image}
+            alt={title}
+            className="absolute w-full h-full object-cover"
+          />
 
-      {/* Black overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          {/* Black overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
-      {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
-        <h3 className="text-sm font-semibold">{title}</h3>
-        <div className="flex items-center mt-1 text-xs">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-            className="w-4 h-4 text-red-500"
-          >
-            <path d="M8 1C4.287-1.271.5 1.678.5 5.5.5 8.74 8 15 8 15s7.5-6.26 7.5-9.5C15.5 1.678 11.713-1.27 8 1zm0 11.034C5.605 9.427 3 6.86 3 5.5 3 3.57 4.57 2 6.5 2 7.535 2 8 2.585 8 2.585S8.465 2 9.5 2C11.43 2 13 3.57 13 5.5c0 1.36-2.605 3.927-5 6.534z" />
-          </svg>
-          <span className="ml-1">{likes}</span>
+          {/* Text overlay */}
+          <div className="absolute bottom-0 left-0 right-0 pl-3 pb-2 text-white">
+            <h3 className="text-md">{title}</h3>
+          </div>
+        </Link>
+
+        {/* Save button */}
+        <div className="absolute top-2 right-2">
+          <SaveButton recipeId={recipeId} size={36} />
         </div>
       </div>
-      </Link>
+
+      {/* Text below the main square */}
+      <div className="mt-2 flex justify-between px-2 text-sm text-gray-800">
+        {/* Star image and stars count */}
+        <div className="flex items-center">
+          <span>{stars}</span>
+                    <img
+            src="/images/star.png"
+            alt="Star Icon"
+            className="w-4 h-4 mr-1 ml-2"
+          />
+        </div>
+
+        {/* Clock image and cooking time */}
+        <div className="flex items-center">
+          <img
+            src="/images/clock.png"
+            alt="Clock Icon"
+            className="w-4 h-4 mr-1"
+          />
+          <span>{cookingTime}</span>
+        </div>
+      </div>
     </div>
   );
 };
