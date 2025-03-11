@@ -146,8 +146,11 @@ const Home = () => {
       handleSaveRecipe(recipes[currentIndex].id);
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
     } else if (currentTranslateX.current < -100) {
-      // Swipe left: skip recipe.
-      setCurrentIndex((prev) => (prev + 1) % recipes.length);
+      // Swipe left: discard recipe.
+      setRecipes((prev) =>
+        prev.filter((recipe) => recipe.id !== recipes[currentIndex].id)
+      );
+      setCurrentIndex(0);
     }
     currentTranslateX.current = 0;
     currentTranslateY.current = 0;

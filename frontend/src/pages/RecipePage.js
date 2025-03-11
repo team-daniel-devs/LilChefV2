@@ -193,10 +193,19 @@ const RecipePage = () => {
       {/* Instructions */}
       <div className="min-w-full snap-center px-6">
         <h3 className="text-lg font-semibold">Instructions</h3>
-        <p className="text-sm text-gray-600">
-          {recipe.instructions || "No instructions available."}
-        </p>
+        {Array.isArray(recipe.instructions) && recipe.instructions.length > 0 ? (
+          <ul className="list-none ml-6">
+            {recipe.instructions.map((step, index) => (
+              <li key={index} className="text-sm text-gray-600">
+                {step}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-600">No instructions available.</p>
+        )}
       </div>
+
 
       {/* Nutrition */}
       <div className="min-w-full snap-center px-6">
