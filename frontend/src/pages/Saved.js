@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SavedRecipe from "../components/SavedRecipe"; // SavedRecipe component
 import { fetchImageUrl } from "../utils/imageUtils";
-import { fetchSavedRecipes, onAuthStateChanged } from "../utils/firebaseUtils";
+import { fetchSavedRecipes, onAuthStateChanged, parseSingleValue } from "../utils/firebaseUtils";
 
 const Saved = () => {
   const [savedRecipes, setSavedRecipes] = useState([]); // State to hold saved recipes
@@ -41,21 +41,35 @@ const Saved = () => {
 
     const fetchRecipes = async () => {
       try {
-        setLoading(true); // Set loading to true when starting the fetch
-        const recipes = await fetchSavedRecipes(userId); // Fetch recipes using the utility function
-        const recipesWithImages = await Promise.all(
-          recipes.map(async (recipe) => ({
-            ...recipe,
-            imageUrl: recipe.image_name
+        setLoading(true);
+        const recipes = await fetchSavedRecipes(userId);
+
+        // Parse the cooking time and attach image URLs
+        const recipesWithData = await Promise.all(
+          recipes.map(async (recipe) => {
+            // 1) Parse the cooking time field
+            const cookingTime = recipe["Cooking Time"]
+              ? parseSingleValue(recipe["Cooking Time"])
+              : "N/A";
+
+            // 2) Fetch image URL
+            const imageUrl = recipe.image_name
               ? await fetchImageUrl(recipe.image_name)
-              : "/images/placeholder.jpg", // Attach image URLs
-          }))
+              : "/images/placeholder.jpg";
+
+            return {
+              ...recipe,
+              cookingTime,
+              imageUrl,
+            };
+          })
         );
-        setSavedRecipes(recipesWithImages); // Update the state with recipes
+
+        setSavedRecipes(recipesWithData);
       } catch (error) {
         console.error("Error fetching saved recipes:", error);
       } finally {
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false);
       }
     };
 
@@ -127,7 +141,7 @@ const Saved = () => {
             title={recipe.title} // Pass recipe title
             image={recipe.imageUrl} // Construct image path
             likes={Math.floor(Math.random() * 1000)} // Temporary random likes
-            cookingTime={recipe.cooking_time || "N/A"} // Fallback if cooking time is missing
+            cookingTime={recipe.cookingTime || "N/A"} // Fallback if cooking time is missing
           />
         ))}
       </div>

@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // For navigation and extracting route parameters
-import { getAuth } from "firebase/auth"; // Firebase Authentication
-import AddToShoppingList from "../components/AddToShoppingList"; // Component for adding ingredients to a shopping list
-import { fetchImageUrl } from "../utils/imageUtils";
-import { fetchFirestoreDoc, addToFirestoreArray } from "../utils/firebaseUtils";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+import { fetchFirestoreDoc, parseSingleValue, parseNutrition, parseRawIngredients, } from "../utils/firebaseUtils";
+import AddToShoppingList from "../components/AddToShoppingList";
 import SaveButton from "../components/SaveButton";
+import { fetchImageUrl } from "../utils/imageUtils";
+
 
 const RecipePage = () => {
   const { recipeId } = useParams(); // Get the `recipeId` parameter from the URL
@@ -23,31 +24,52 @@ const RecipePage = () => {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const recipeData = await fetchFirestoreDoc("recipes", recipeId); // Use utility function
-        if (recipeData) {
-          // Parse the `ingredients` field if it's a JSON string
-          let ingredients = [];
-          try {
-            ingredients = recipeData.ingredients
-              ? JSON.parse(recipeData.ingredients.replace(/'/g, '"'))
-              : [];
-          } catch (error) {
-            console.error("Error parsing ingredients:", error);
-          }
-
-          setRecipe({
-            ...recipeData,
-            ingredients, // Store the parsed ingredients
-          });
-
-          // Fetch the recipe image using the utility function
-          const url = recipeData.image_name
-            ? await fetchImageUrl(recipeData.image_name)
-            : "/images/placeholder.jpg"; // Fallback image
-          setImageUrl(url);
-        } else {
+        const recipeData = await fetchFirestoreDoc("recipes", recipeId);
+        if (!recipeData) {
           console.error("Recipe not found");
+          return;
         }
+
+        // Parse the fields
+        const cookingTime = recipeData["Cooking Time"]
+          ? parseSingleValue(recipeData["Cooking Time"])
+          : "N/A";
+        const difficulty = recipeData.Difficulty
+          ? parseSingleValue(recipeData.Difficulty)
+          : "N/A";
+        const nutrition = recipeData.Calories
+          ? parseNutrition(recipeData.Calories)
+          : {};
+        const rawIng = recipeData["Raw Ingredients"]
+          ? parseRawIngredients(recipeData["Raw Ingredients"])
+          : [];
+
+        // If instructions is stored as a single JSON string, parse similarly
+        let instructions = [];
+        if (recipeData.instructions) {
+          try {
+            instructions = JSON.parse(recipeData.instructions.replace(/'/g, '"'));
+          } catch (err) {
+            console.error("Error parsing instructions:", err);
+          }
+        }
+
+        // Build the final object
+        setRecipe({
+          ...recipeData,
+          prepTime: cookingTime,
+          cookTime: cookingTime,
+          level: difficulty,
+          nutrition,
+          ingredients: rawIng,
+          instructions,
+        });
+
+        // Load image if available
+        const url = recipeData.image_name
+          ? await fetchImageUrl(recipeData.image_name)
+          : "/images/placeholder.jpg";
+        setImageUrl(url);
       } catch (error) {
         console.error("Error fetching recipe:", error);
       }

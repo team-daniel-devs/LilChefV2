@@ -1,9 +1,34 @@
 import React, { useState } from "react";
 
-const FilterPage = ({ isVisible, onClose }) => {
+const FilterPage = ({ isVisible, onClose, onApplyFilter }) => {
   const [selectedCookingTimes, setSelectedCookingTimes] = useState([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [priceValue, setPriceValue] = useState(0);
+  const [showAllIngredients, setShowAllIngredients] = useState(false);
+
+  const Ingredients = [
+    "kosher salt",
+    "garlic",
+    "salt",
+    "black pepper",
+    "olive oil",
+    "sugar",
+    "unsalted butter",
+    "vegetable oil",
+    "ginger",
+    "butter",
+    "lemon",
+    "eggs",
+    "onion",
+    "extra-virgin olive oil",
+    "water",
+    "honey",
+    "all-purpose flour",
+    "sea salt",
+    "parsley",
+    "cilantro",
+  ];
 
   const toggleSelection = (item, selectedItems, setSelectedItems) => {
     if (selectedItems.includes(item)) {
@@ -14,12 +39,14 @@ const FilterPage = ({ isVisible, onClose }) => {
   };
 
   const handleApplyFilter = () => {
-    console.log({
-      selectedCookingTimes,
-      selectedDifficulties,
-      selectedIngredients,
+    // Create a filter object and pass it to Home.js
+    onApplyFilter({
+      cookingTimes: selectedCookingTimes,
+      difficulties: selectedDifficulties,
+      ingredients: selectedIngredients,
+      price: priceValue,
     });
-    onClose(); // Close the filter page
+    onClose(); // Close the filter panel
   };
 
   return (
@@ -84,9 +111,11 @@ const FilterPage = ({ isVisible, onClose }) => {
               type="range"
               className="w-full mt-2 accent-green-500"
               min="0"
-              max="100"
+              max="50" // set max to 50
+              value={priceValue}
+              onChange={(e) => setPriceValue(parseFloat(e.target.value))}
             />
-            <p className="text-gray-700 text-sm mt-2">$0</p>
+            <p className="text-gray-700 text-sm mt-2">${priceValue}</p>
           </div>
 
           {/* Difficulty */}
@@ -119,28 +148,34 @@ const FilterPage = ({ isVisible, onClose }) => {
           <div>
             <h2 className="text-lg font-bold flex justify-between items-center">
               Ingredients in stock
-              <span className="text-green-500 text-sm cursor-pointer">
-                View all
+              <span
+                className="text-green-500 text-sm cursor-pointer"
+                onClick={() => setShowAllIngredients(!showAllIngredients)}
+              >
+                {showAllIngredients ? "View less" : "View all"}
               </span>
             </h2>
             <div className="flex flex-wrap gap-2 mt-3">
-              {[...Array(12).keys()].map((i) => (
+              {(showAllIngredients
+                ? Ingredients
+                : Ingredients.slice(0, 10)
+              ).map((ingredient) => (
                 <button
-                  key={i}
+                  key={ingredient}
                   onClick={() =>
                     toggleSelection(
-                      `Ingredient ${i}`,
+                      ingredient,
                       selectedIngredients,
                       setSelectedIngredients
                     )
                   }
                   className={`px-4 py-2 rounded-full border border-gray-300 ${
-                    selectedIngredients.includes(`Ingredient ${i}`)
+                    selectedIngredients.includes(ingredient)
                       ? "bg-green-500 text-white"
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {`Ingredient ${i}`}
+                  {ingredient}
                 </button>
               ))}
             </div>
