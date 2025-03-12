@@ -29,7 +29,7 @@ const RecipePage = () => {
           console.error("Recipe not found");
           return;
         }
-
+  
         // Parse the fields
         const cookingTime = recipeData["Cooking Time"]
           ? parseSingleValue(recipeData["Cooking Time"])
@@ -43,18 +43,24 @@ const RecipePage = () => {
         const rawIng = recipeData["Raw Ingredients"]
           ? parseRawIngredients(recipeData["Raw Ingredients"])
           : [];
-
-        // If instructions is stored as a single JSON string, parse similarly
+  
+        // Parse instructions safely.
         let instructions = [];
         if (recipeData.instructions) {
-          try {
-            instructions = JSON.parse(recipeData.instructions.replace(/'/g, '"'));
-          } catch (err) {
-            console.error("Error parsing instructions:", err);
+          if (typeof recipeData.instructions === "string") {
+            try {
+              instructions = JSON.parse(recipeData.instructions.replace(/'/g, '"'));
+            } catch (err) {
+              console.error("Error parsing instructions:", err);
+            }
+          } else if (Array.isArray(recipeData.instructions)) {
+            instructions = recipeData.instructions;
+          } else {
+            console.warn("Unexpected instructions format:", recipeData.instructions);
           }
         }
-
-        // Build the final object
+  
+        // Build the final recipe object.
         setRecipe({
           ...recipeData,
           prepTime: cookingTime,
@@ -64,8 +70,8 @@ const RecipePage = () => {
           ingredients: rawIng,
           instructions,
         });
-
-        // Load image if available
+  
+        // Load image if available.
         const url = recipeData.image_name
           ? await fetchImageUrl(recipeData.image_name)
           : "/images/placeholder.jpg";
@@ -74,7 +80,7 @@ const RecipePage = () => {
         console.error("Error fetching recipe:", error);
       }
     };
-
+  
     fetchRecipe();
   }, [recipeId]); // Re-fetch if `recipeId` changes
 
