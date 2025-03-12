@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove  } from "firebase/firestore";
 import { db } from "../firebaseconfig";
 import { auth } from "../firebaseconfig";
 
@@ -40,6 +40,18 @@ export const addToFirestoreArray = async (collection, docId, field, value) => {
     });
   } catch (error) {
     console.error("Error adding to array in Firestore:", error);
+    throw error;
+  }
+};
+
+export const removeFromFirestoreArray = async (collection, docId, field, value) => {
+  try {
+    const docRef = doc(db, collection, docId);
+    await updateDoc(docRef, {
+      [field]: arrayRemove(value),
+    });
+  } catch (error) {
+    console.error("Error removing from array in Firestore:", error);
     throw error;
   }
 };

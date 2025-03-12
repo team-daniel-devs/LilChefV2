@@ -1,78 +1,75 @@
 import React, { useState, useEffect, useRef } from "react";
-import RecipeCard from "../components/RecipeCard"; // Component to display recipe details
-import { collection, getDocs } from "firebase/firestore"; // Firestore functions
-import { db } from "../firebaseconfig"; // Firebase configuration
-import { Link } from "react-router-dom"; // For navigation
-import FilterPage from "../components/FilterPage"; // FilterPage component
-import { doc, updateDoc, arrayUnion } from "firebase/firestore"; // Firestore update methods
-import { getAuth } from "firebase/auth"; // Firebase Authentication
-import { getStorage } from "firebase/storage"; // Firebase Storage (if needed)
-import { fetchSavedRecipes } from "../utils/firebaseUtils"; // Utility to fetch saved recipes
+import RecipeCard from "../components/RecipeCard";
+import { collection, getDocs, query, startAfter, limit } from "firebase/firestore";
+import { db } from "../firebaseconfig";
+import { Link } from "react-router-dom";
+import FilterPage from "../components/FilterPage";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { fetchSavedRecipes } from "../utils/firebaseUtils";
+
+const PAGE_SIZE = 5;
+const LOAD_THRESHOLD = 2;
 
 const Home = () => {
-  const [recipes, setRecipes] = useState([]); // Stores unsaved recipes
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks the index of the currently displayed recipe
+  const [recipes, setRecipes] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-  // Refs for touch handling
   const containerRef = useRef(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const currentTranslateX = useRef(0);
   const currentTranslateY = useRef(0);
 
-  // State for dynamic UI during swipe
   const [opacity, setOpacity] = useState(0);
   const [text, setText] = useState("");
   const [color, setColor] = useState("");
 
   const auth = getAuth();
-  const storage = getStorage();
-  const currentUser = auth.currentUser; // Get the logged-in user
+  const currentUser = auth.currentUser;
 
-  // Save the recipe to the user's savedRecipes in Firestore
-  // Also remove it from the swipe deck locally so it won't show up again.
   const handleSaveRecipe = async (recipeId) => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
+    if (!currentUser) return;
+
     const userDocRef = doc(db, "users", currentUser.uid);
     try {
       await updateDoc(userDocRef, {
         savedRecipes: arrayUnion(recipeId),
       });
       console.log("Recipe saved successfully!");
-      // Remove the saved recipe from the local list
       setRecipes((prev) => prev.filter((recipe) => recipe.id !== recipeId));
-      // Reset the index
       setCurrentIndex(0);
     } catch (error) {
       console.error("Error saving recipe:", error);
     }
   };
 
-  // Fetch recipes from Firestore and filter out those already saved.
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        // Fetch all recipe documents from the "recipes" collection.
-        const querySnapshot = await getDocs(collection(db, "recipes"));
+  const loadRecipes = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
 
-        // Use a mutable variable so we can reassign after filtering.
-        let fetchedRecipes = querySnapshot.docs.map((doc) => {
+    try {
+      let queryRef = collection(db, "recipes");
+      if (lastVisible) {
+        queryRef = query(queryRef, startAfter(lastVisible), limit(PAGE_SIZE));
+      } else {
+        queryRef = query(queryRef, limit(PAGE_SIZE));
+      }
+
+      const querySnapshot = await getDocs(queryRef);
+      if (!querySnapshot.empty) {
+        const fetchedRecipes = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           let ingredients = [];
           try {
             ingredients = data.ingredients
               ? JSON.parse(data.ingredients.replace(/'/g, '"'))
               : [];
-          } catch (parseError) {
-            console.error(
-              "Error parsing ingredients for recipe:",
-              data.title,
-              data.ingredients
-            );
+          } catch (error) {
+            console.error("Error parsing ingredients for recipe:", data.title);
             ingredients = [];
           }
           return {
@@ -88,22 +85,41 @@ const Home = () => {
           };
         });
 
-        // If a user is logged in, filter out recipes already saved.
+        const newRecipes = fetchedRecipes.filter(
+          (recipe) => !recipes.some((r) => r.id === recipe.id)
+        );
+
         if (currentUser) {
           const savedRecipes = await fetchSavedRecipes(currentUser.uid);
           const savedRecipeIds = savedRecipes.map((recipe) => recipe.id);
-          fetchedRecipes = fetchedRecipes.filter(
+          const filteredRecipes = newRecipes.filter(
             (recipe) => !savedRecipeIds.includes(recipe.id)
           );
+          setRecipes((prev) => [...prev, ...filteredRecipes]);
+          console.log(`Loaded ${filteredRecipes.length} new recipes.`);
+        } else {
+          setRecipes((prev) => [...prev, ...newRecipes]);
+          console.log(`Loaded ${newRecipes.length} new recipes.`);
         }
-        setRecipes(fetchedRecipes);
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
-      }
-    };
 
-    fetchRecipes();
+        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      }
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecipes();
   }, []);
+
+  useEffect(() => {
+    if (currentIndex >= recipes.length - LOAD_THRESHOLD) {
+      loadRecipes();
+    }
+  }, [currentIndex]);
 
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX;
@@ -118,6 +134,7 @@ const Home = () => {
     const deltaY = e.touches[0].clientY - startY.current;
     currentTranslateX.current += deltaX;
     currentTranslateY.current += deltaY;
+
     if (containerRef.current) {
       containerRef.current.style.transform = `translate(${currentTranslateX.current}px, ${currentTranslateY.current}px) rotate(${currentTranslateX.current / 20}deg)`;
     }
@@ -135,6 +152,7 @@ const Home = () => {
       setText("");
       setColor("");
     }
+
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
   };
@@ -142,9 +160,9 @@ const Home = () => {
   const handleTouchEnd = () => {
     if (currentTranslateX.current > 100) {
       handleSaveRecipe(recipes[currentIndex].id);
-      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : recipes.length - 1));
+      setCurrentIndex((prev) => prev + 1);
     } else if (currentTranslateX.current < -100) {
-      setCurrentIndex((prev) => (prev + 1) % recipes.length);
+      setCurrentIndex((prev) => prev + 1);
     }
 
     currentTranslateX.current = 0;
@@ -162,20 +180,16 @@ const Home = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white mt-[-5vh]">
       <div className="w-full max-w-3xl flex flex-col overflow-hidden bg-white shadow-lg rounded-lg">
-        {/* Header Section */}
         <header className="relative h-16 flex items-center justify-center mb-3">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10">
-            <img src="/images/LogoNoText.png" alt="Logo" className="h-16 w-16 object-contain" />
-          </div>
+          <img src="/images/LogoNoText.png" alt="Logo" className="h-16 w-16" />
           <button
-            className="absolute top-3 right-12 flex items-center bg-[#0E9A61] text-white px-2.5 py-2.5 rounded-2xl text-sm font-semibold shadow z-10"
+            className="absolute top-3 right-12 bg-[#0E9A61] text-white px-2.5 py-2.5 rounded-2xl"
             onClick={() => setIsFilterVisible(true)}
           >
-            <img src="/images/Filter.png" alt="Filter" className="w-5 h-5" />
+            Filter
           </button>
         </header>
-  
-        {/* Main Content */}
+
         <main className="flex-1 relative bg-white">
           <div
             className="recipe-container absolute inset-0"
@@ -185,21 +199,19 @@ const Home = () => {
             onTouchEnd={handleTouchEnd}
           >
             {recipes.slice(currentIndex, currentIndex + 1).map((recipe) => (
-              <div className="recipe-card" key={recipe.id}>
+              <div key={recipe.id}>
                 <Link to={`/recipepage/${recipe.id}`}>
-                  <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color}/>
+                  <RecipeCard recipe={recipe} opacity={opacity} text={text} color={color} />
                 </Link>
               </div>
             ))}
           </div>
         </main>
 
-  
         <FilterPage isVisible={isFilterVisible} onClose={() => setIsFilterVisible(false)} />
       </div>
     </div>
   );
-  
 };
 
 export default Home;
