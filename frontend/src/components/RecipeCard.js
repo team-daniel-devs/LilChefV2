@@ -53,19 +53,19 @@ const RecipeCard = ({ recipe, opacity, text, color }) => {
           <div className="text-sm text-gray-600 grid grid-cols-4 gap-2">
             <div>
               <p className="font-semibold">{recipe.nutrition.calories || "N/A"}</p>
-              <p className="text-xs"></p>
+              <p className="text-xs">calories</p>
             </div>
             <div>
               <p className="font-semibold">{recipe.nutrition.protein || "N/A"}</p>
-              <p className="text-xs"></p>
+              <p className="text-xs">protein</p>
             </div>
             <div>
               <p className="font-semibold">{recipe.nutrition.fat || "N/A"}</p>
-              <p className="text-xs"></p>
+              <p className="text-xs">fat</p>
             </div>
             <div>
               <p className="font-semibold">{recipe.nutrition.sugar || "N/A"}</p>
-              <p className="text-xs"></p>
+              <p className="text-xs">sugar</p>
             </div>
           </div>
         </div>

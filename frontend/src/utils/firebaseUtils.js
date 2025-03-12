@@ -171,25 +171,33 @@ export function parseNutrition(rawValue) {
     }
     // Un-escape internal quotes
     str = str.replace(/\\"/g, '"');
-    // Now we should have something like: ["360 calories, 0g protein, 0g fats, 70g carbohydrates"]
+    // Now we should have something like: ["2050 calories, 28g protein, 70g fats, 340g carbohydrates"]
     const arr = JSON.parse(str);
 
     if (Array.isArray(arr) && arr.length > 0) {
-      // e.g. "360 calories, 0g protein, 0g fats, 70g carbohydrates"
+      // e.g. "2050 calories, 28g protein, 70g fats, 340g carbohydrates"
       const line = arr[0].trim().replace(/^"|"$/g, "");
 
       // Split by commas
       const parts = line.split(",").map((p) => p.trim());
       parts.forEach((part) => {
         const lower = part.toLowerCase();
-        if (lower.includes("calorie")) {
-          nutritionObj.calories = part;
-        } else if (lower.includes("protein")) {
-          nutritionObj.protein = part;
-        } else if (lower.includes("fat")) {
-          nutritionObj.fat = part;
-        } else if (lower.includes("carbohydrate") || lower.includes("sugar")) {
-          nutritionObj.sugar = part;
+        // Match the numeric portion (optionally followed by 'g'):
+        //   e.g. "28g" → match[1] = "28", match[2] = "g"
+        //   e.g. "2050" → match[1] = "2050", match[2] = undefined
+        const match = part.match(/(\d+(?:\.\d+)?)(g)?/);
+        if (match) {
+          const numericVal = match[1]; // e.g. "28", "2050", "70"
+          // Decide which field to store based on keywords
+          if (lower.includes("calorie")) {
+            nutritionObj.calories = numericVal; // "2050"
+          } else if (lower.includes("protein")) {
+            nutritionObj.protein = numericVal;  // "28"
+          } else if (lower.includes("fat")) {
+            nutritionObj.fat = numericVal;      // "70"
+          } else if (lower.includes("carb") || lower.includes("sugar")) {
+            nutritionObj.sugar = numericVal;    // "340"
+          }
         }
       });
     }
