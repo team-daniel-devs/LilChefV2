@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_OPTIONS=--openssl-legacy-provider node server.js",
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,5 +18,8 @@
     "express": "^4.21.1",
     "firebase": "^11.0.2",
     "firebase-admin": "^13.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

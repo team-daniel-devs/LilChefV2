@@ -4,6 +4,7 @@ const { calculateMealPriceByRecipeId } = require('./mealPrice');
 const registerRoute = require('./register');
 const loginRoute = require('./login');
 const googleSignInRoute = require('./google-signin');
+const googleLoginRoute = require('./google-login')
 const admin = require('./firebaseAdmin'); // Use your Firebase Admin initialization file
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors(
       "https://lilchef.food",
       "https://shiny-gaufre-1f245d.netlify.app",
       "http://localhost:3000",
+      "http://localhost:3001",
       "https://cookaing-da7d0.uc.r.appspot.com",
     ],
     method: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -48,6 +50,7 @@ app.get("/meal-price/:recipeId", async (req, res) => {
 app.use('/register', registerRoute);
 app.use('/google-signin', googleSignInRoute);
 app.use('/login', loginRoute);
+app.use('/google-login', googleLoginRoute)
 
 // Start server
 app.listen(PORT, () => {

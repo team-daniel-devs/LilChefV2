@@ -81,23 +81,20 @@ const Saved = () => {
   }
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-[#F7F7F7]">
       {/* Header */}
-      <header className="flex items-center justify-center p-10">
-        <h1 className="text-2xl font-semibold text-gray-800">Saved Recipes</h1>
+      <header className="flex items-center justify-center p-10 mt-4">
+        <h1 className="text-2xl text-gray-800">Saved Recipes</h1>
       </header>
 
       {/* Search Bar */}
       <div className="mb-4">
-        <div className="flex items-center bg-white p-3 rounded-lg shadow">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+        <div className="flex items-center bg-white p-3 rounded-3xl">
+          <img
+            src="images/search.png"
+            alt="Search Icon"
             className="w-5 h-5 text-gray-500 mr-2"
-          >
-            <path d="M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85a1.007 1.007 0 00-.115-.1zm-5.479.607a5.5 5.5 0 1110 0 5.5 5.5 0 01-10 0z" />
-          </svg>
+          />
           <input
             type="text"
             placeholder="Search saved recipes"
@@ -106,14 +103,19 @@ const Saved = () => {
         </div>
       </div>
 
+
       {/* Filter and Sort Buttons */}
-      <div className="flex gap-4 mb-6">
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
-          Filter
-        </button>
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow-md flex justify-center items-center gap-2">
-          Sort
-        </button>
+      <div className="flex justify-start mb-4">
+        <div className="flex gap-2 w-48">
+          <button className="flex-1 bg-[#0E9A61] text-white py-2 rounded-2xl shadow-md flex justify-center items-center gap-2">
+            <img src="images/filter.png" alt="Filter Icon" className="w-5 h-5" />
+            Filter
+          </button>
+          <button className="flex-1 bg-[#0E9A61] text-white py-2 rounded-2xl shadow-md flex justify-center items-center gap-2">
+            <img src="images/sort.png" alt="Sort Icon" className="w-4 h-4" />
+            Sort
+          </button>
+        </div>
       </div>
 
       {/* Recipe Grid Section */}
