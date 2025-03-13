@@ -79,6 +79,7 @@ const Login = ({ navigation }) => {
       console.log("Google ID Token:", idToken);
 
       // Send the idToken to your backend endpoint for login
+      /*
       const response = await fetch("http://localhost:3000/google-login", {
         method: "POST",
         headers: {
@@ -86,6 +87,16 @@ const Login = ({ navigation }) => {
         },
         body: JSON.stringify({ idToken }),
       });
+      */
+
+      const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/google-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
       const data = await response.json();
       if (response.ok) {
         navigate("/home");

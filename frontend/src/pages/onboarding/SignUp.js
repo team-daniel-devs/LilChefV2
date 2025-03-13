@@ -77,7 +77,7 @@ const handleGoogleSignUp = async () => {
 
     // Uncomment this block for production:
     //-------------------------------------------------------------------------------------------
-    /*
+    
     const response = await fetch('https://cookaing-da7d0.uc.r.appspot.com/google-signin', {
       method: "POST", // HTTP method
       headers: {
@@ -85,10 +85,11 @@ const handleGoogleSignUp = async () => {
       },
       body: JSON.stringify({ idToken }),
     });
-    */
+    
    //-------------------------------------------------------------------------------------------
 
     // Uncomment this block for local development:
+    /*
     //--------------------------------------------------------------------
     const response = await fetch('http://localhost:3000/google-signin', {
       method: "POST", // HTTP method
@@ -97,6 +98,7 @@ const handleGoogleSignUp = async () => {
       },
       body: JSON.stringify({ idToken }),
     });
+    */
     
     const data = await response.json();
     if (response.ok) {
