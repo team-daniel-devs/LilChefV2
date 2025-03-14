@@ -6,7 +6,6 @@ import Taskbar from './components/Navbar';
 import RecipePage from './pages/RecipePage';
 import LandingPage from './pages/onboarding/LandingPage';
 import SignUp from './pages/onboarding/SignUp';
-<<<<<<< HEAD:frontend/src/App.js
 import Login from './pages/Login';
 import testStorageConnection from "./utils/testStorageConnection";
 import Desktop from "./website/Desktop";
@@ -59,42 +58,11 @@ const App = () => {
 
     handleOrientationChange(); // Check on load
     window.addEventListener('resize', handleOrientationChange);
-=======
-import Grocery from './pages/Grocery';
-import Desktop from './website/Desktop'; // Import the Desktop component
-import Mobile from './website/Mobile'; // Import the Mobile component
-
-const App = () => {
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      // Check if the device is a desktop
-      setIsDesktop(window.innerWidth > 1024);
-    };
-
-    const checkStandaloneMode = () => {
-      // Check if the app is running in standalone mode
-      const isStandaloneMode =
-        window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      setIsStandalone(isStandaloneMode);
-    };
-
-    // Run checks on load
-    handleResize();
-    checkStandaloneMode();
-
-    // Add resize event listener
-    window.addEventListener('resize', handleResize);
-
->>>>>>> origin:src/App.js
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-<<<<<<< HEAD:frontend/src/App.js
   if (!showApp) {
     if(!mobile){
       return (
@@ -130,33 +98,6 @@ const App = () => {
       </div>
     </Router>
   );
-=======
-  if (isDesktop) {
-    return <Desktop />; // Render the Desktop component for desktop screens
-  }
-
-  if (!isDesktop && isStandalone) {
-    return (
-      <Router>
-        <div style={{ paddingBottom: '60px' }}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/saved" element={<Saved />} />
-            <Route path="/recipepage" element={<RecipePage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/grocery" element={<Grocery />} />
-          </Routes>
-
-          {/* Conditionally render the Taskbar */}
-          <ConditionalTaskbar />
-        </div>
-      </Router>
-    );
-  }
-
-  return <Mobile />; // Render the Mobile component for mobile browsers
->>>>>>> origin:src/App.js
 };
 
 const ConditionalTaskbar = () => {
