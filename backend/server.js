@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors(
   {
     origin:[
+      "https://lilchef.food",
       "https://shiny-gaufre-1f245d.netlify.app",
       "http://localhost:3000",
       "http://localhost:3001",
