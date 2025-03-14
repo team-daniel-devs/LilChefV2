@@ -60,11 +60,6 @@ html {
   width: 100%;
   overflow: hidden;
   position: relative;
-<<<<<<< HEAD:frontend/src/index.css
-=======
-  height: calc(100vh - 150px); /* Full height minus header height (adjust as needed) */
-  padding: 20px; /* Add some spacing to avoid cards touching the edges */
->>>>>>> origin:src/index.css
 }
 
 
@@ -77,12 +72,3 @@ html {
   transform: translateX(0px); /* Default position */
   transition: transform 0.3s ease;
 }
-<<<<<<< HEAD:frontend/src/index.css
-=======
-
-.break-words {
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-}
->>>>>>> origin:src/index.css
