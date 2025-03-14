@@ -38,29 +38,29 @@ const App = () => {
 
 
     // Detect if the app is in landscape mode
-    const handleOrientationChange = () => {
-      if (window.matchMedia('(orientation: landscape)').matches) {
-        setShowApp(false);
-        setMessage('Please rotate your device to portrait mode.');
-      } else {
-        setShowApp(true);
-        setMessage('');
-      }
-    };
+    // const handleOrientationChange = () => {
+    //   if (window.matchMedia('(orientation: landscape)').matches) {
+    //     setShowApp(false);
+    //     setMessage('Please rotate your device to portrait mode.');
+    //   } else {
+    //     setShowApp(true);
+    //     setMessage('');
+    //   }
+    // };
 
-    //   // Making sure ur on the app (commented otu for dev purposes)
-    // if (!isStandalone) {
-    //   setShowApp(false);
-    //   setMobile(true);
-    //   setMessage('Please add this app to your home screen for the best experience.');
-    //   return;
-    // }
+      // Making sure ur on the app (commented otu for dev purposes)
+    if (!isStandalone) {
+      setShowApp(false);
+      setMobile(true);
+      setMessage('Please add this app to your home screen for the best experience.');
+      return;
+    }
 
-    handleOrientationChange(); // Check on load
-    window.addEventListener('resize', handleOrientationChange);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+  //   handleOrientationChange(); // Check on load
+  //   window.addEventListener('resize', handleOrientationChange);
+  //   return () => {
+  //     window.removeEventListener('resize', handleResize);
+  //   };
   }, []);
 
   if (!showApp) {
