@@ -4,7 +4,12 @@ const router = express.Router();
 const { admin, firebaseAdminInitialized } = require('./firebaseAdmin');
 
 // Ensure Firebase Admin is initialized
-firebaseAdminInitialized.catch(console.error);
+// firebaseAdminInitialized.catch(console.error);
+
+firebaseAdminInitialized.then((adminInstance) => {
+  admin = adminInstance;
+  firestore = admin.firestore();
+}).catch(console.error);
 
 router.post('/', async (req, res) => {
   const { idToken } = req.body;
