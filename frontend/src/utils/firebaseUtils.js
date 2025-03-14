@@ -161,42 +161,44 @@ export function parseSingleValue(rawValue) {
  */
 export function parseNutrition(rawValue) {
   // Default object in case something fails
-  const nutritionObj = { calories: "N/A", protein: "N/A", fat: "N/A", sugar: "N/A" };
+  const nutritionObj = {
+    calories: { value: 0, unit: "cal" },
+    protein: { value: 0, unit: "g" },
+    fat: { value: 0, unit: "g" },
+    sugar: { value: 0, unit: "g" }
+  };
 
   try {
     let str = rawValue.trim();
-    // If the entire field is wrapped in quotes, remove them
+    // Remove outer quotes if present
     if (str.startsWith('"') && str.endsWith('"')) {
       str = str.slice(1, -1);
     }
     // Un-escape internal quotes
     str = str.replace(/\\"/g, '"');
-    // Now we should have something like: ["2050 calories, 28g protein, 70g fats, 340g carbohydrates"]
+    // Now we expect a JSON string like:
+    // ["2050 calories, 28g protein, 70g fats, 340g carbohydrates"]
     const arr = JSON.parse(str);
 
     if (Array.isArray(arr) && arr.length > 0) {
-      // e.g. "2050 calories, 28g protein, 70g fats, 340g carbohydrates"
       const line = arr[0].trim().replace(/^"|"$/g, "");
-
-      // Split by commas
-      const parts = line.split(",").map((p) => p.trim());
-      parts.forEach((part) => {
+      // Split by commas and process each part
+      const parts = line.split(",").map(p => p.trim());
+      parts.forEach(part => {
         const lower = part.toLowerCase();
-        // Match the numeric portion (optionally followed by 'g'):
-        //   e.g. "28g" → match[1] = "28", match[2] = "g"
-        //   e.g. "2050" → match[1] = "2050", match[2] = undefined
-        const match = part.match(/(\d+(?:\.\d+)?)(g)?/);
+        // Use regex to extract the numeric portion and the remaining text
+        const match = part.match(/(\d+(?:\.\d+)?)(.*)/);
         if (match) {
-          const numericVal = match[1]; // e.g. "28", "2050", "70"
-          // Decide which field to store based on keywords
+          const num = parseFloat(match[1]);
+          const unitText = match[2].trim().toLowerCase();
           if (lower.includes("calorie")) {
-            nutritionObj.calories = numericVal; // "2050"
+            nutritionObj.calories = { value: num, unit: "cal" };
           } else if (lower.includes("protein")) {
-            nutritionObj.protein = numericVal;  // "28"
+            nutritionObj.protein = { value: num, unit: "g" };
           } else if (lower.includes("fat")) {
-            nutritionObj.fat = numericVal;      // "70"
+            nutritionObj.fat = { value: num, unit: "g" };
           } else if (lower.includes("carb") || lower.includes("sugar")) {
-            nutritionObj.sugar = numericVal;    // "340"
+            nutritionObj.sugar = { value: num, unit: "g" };
           }
         }
       });
@@ -254,46 +256,41 @@ export function parsePricedIngredients(rawValue) {
   try {
     let str = rawValue.trim();
 
-    // If the entire field is wrapped in quotes, remove them
+    // Remove outer quotes if present
     if (str.startsWith('"') && str.endsWith('"')) {
       str = str.slice(1, -1);
     }
-
     // Un-escape internal quotes
     str = str.replace(/\\"/g, '"');
 
-    // Now str might look like:
-    // [ "1 cup (½ pint) cherry tomatoes, halved: $2.00", "1 tablespoon soy sauce: $0.10", ... ]
-    const arr = JSON.parse(str);
+    let arr;
+    try {
+      arr = JSON.parse(str);
+    } catch (jsonError) {
+      console.error("JSON parse error in parsePricedIngredients:", jsonError, "Raw value:", rawValue);
+      // Fallback: attempt to split the string manually by commas before a quote
+      arr = str.split(/,(?=\s*")/);
+    }
 
     if (Array.isArray(arr)) {
-      arr.forEach((entry) => {
-        // entry might look like: "1 cup (½ pint) cherry tomatoes, halved: $2.00"
+      arr.forEach(entry => {
         const trimmed = entry.trim();
-
-        // Try to find the last colon (':') which precedes the cost
+        // Find the last colon which should separate the ingredient from its cost
         const lastColonIndex = trimmed.lastIndexOf(':');
         if (lastColonIndex === -1) {
-          // No colon found, skip or treat cost as 0
+          // If no colon is found, use cost 0
           items.push({ name: trimmed, cost: 0 });
           return;
         }
-
-        // Name is everything before the colon, cost is everything after
         const namePart = trimmed.slice(0, lastColonIndex).trim();
         const costPart = trimmed.slice(lastColonIndex + 1).trim(); // e.g. "$2.00"
-
-        // Remove the leading '$' if present, parse as float
         let numericCost = 0;
         if (costPart.startsWith('$')) {
           numericCost = parseFloat(costPart.slice(1)) || 0;
         } else {
           numericCost = parseFloat(costPart) || 0;
         }
-
-        // Add to our array
         items.push({ name: namePart, cost: numericCost });
-        // Accumulate
         totalCost += numericCost;
       });
     }

@@ -85,8 +85,8 @@ module.exports = {
     admin,
     firebaseAdminInitialized: Promise.resolve(admin)
   };
-
 */
+
 // -------------------------------------------------------------------
 // To switch between production and local development:
 // - For local development: Use the code above (import the JSON file)

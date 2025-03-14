@@ -1,19 +1,37 @@
 // src/pages/DailyPlan.js
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  onAuthStateChanged,
-  fetchSavedRecipes,
-} from '../utils/firebaseUtils';
+import { onAuthStateChanged, fetchSavedRecipes, parseNutrition  } from '../utils/firebaseUtils';
 import { fetchImageUrl } from '../utils/imageUtils';
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-} from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
+
+/**
+ * aggregateNutrition:
+ * Sums the nutritional values from an array of nutrition objects.
+ * Each nutrition object is expected to have the shape:
+ *   { calories: { value: number, unit: string },
+ *     protein: { value: number, unit: string },
+ *     fat: { value: number, unit: string },
+ *     sugar: { value: number, unit: string } }
+ */
+function aggregateNutrition(nutritionArray) {
+  return nutritionArray.reduce(
+    (acc, curr) => {
+      acc.calories.value += curr.calories.value;
+      acc.protein.value += curr.protein.value;
+      acc.fat.value += curr.fat.value;
+      acc.sugar.value += curr.sugar.value;
+      return acc;
+    },
+    {
+      calories: { value: 0, unit: "cal" },
+      protein: { value: 0, unit: "g" },
+      fat: { value: 0, unit: "g" },
+      sugar: { value: 0, unit: "g" }
+    }
+  );
+}
 
 /** 
  * fetchWeeklyPlan:
@@ -107,10 +125,17 @@ const DailyPlan = () => {
         const recipesWithImages = await Promise.all(
           recipes.map(async (recipe) => ({
             ...recipe,
-            // Convert stored image identifier into a full URL; use a placeholder if none.
             imageUrl: recipe.image_name
               ? await fetchImageUrl(recipe.image_name)
               : '/images/placeholder.jpg',
+            // Optionally, if your recipe object does not have a parsed nutrition,
+            // you can compute it here. We assume that either recipe.nutrition exists or
+            // recipe.Calories can be parsed.
+            nutrition: recipe.nutrition
+              ? recipe.nutrition
+              : recipe.Calories
+              ? parseNutrition(recipe.Calories)
+              : { calories: { value: 0, unit: "cal" }, protein: { value: 0, unit: "g" }, fat: { value: 0, unit: "g" }, sugar: { value: 0, unit: "g" } }
           }))
         );
         setUnscheduledMeals(recipesWithImages);
@@ -122,6 +147,31 @@ const DailyPlan = () => {
     }
     loadData();
   }, [userId]);
+
+  /**
+   * getAggregatedNutrition:
+   * For the current day, finds all scheduled recipe IDs (from Breakfast, Lunch, Dinner),
+   * looks up the corresponding recipe objects in unscheduledMeals, and aggregates their nutrition.
+   */
+  const getAggregatedNutrition = () => {
+    const nutritionArray = [];
+    const categories = ['Breakfast', 'Lunch', 'Dinner'];
+    categories.forEach((cat) => {
+      const recipeIds = mealPlan[day]?.[cat] || [];
+      recipeIds.forEach((recipeId) => {
+        // Find the recipe in unscheduledMeals (or you could use a global cache/dictionary).
+        const recipe = unscheduledMeals.find((r) => r.id === recipeId);
+        if (recipe) {
+          // Use the nutrition field if it exists.
+          const nutrition = recipe.nutrition;
+          if (nutrition) {
+            nutritionArray.push(nutrition);
+          }
+        }
+      });
+    });
+    return aggregateNutrition(nutritionArray);
+  };
 
   /**
    * handleAddMealToCategory:
@@ -204,6 +254,8 @@ const DailyPlan = () => {
   // Get the subcategories for the current day.
   // If not present, default to empty arrays.
   const subMealPlan = mealPlan[day] || { Breakfast: [], Lunch: [], Dinner: [] };
+  // Compute aggregated nutrition for the day.
+  const aggregatedNutrition = getAggregatedNutrition();
 
   return (
     <div className="max-w-md mx-auto p-4">
@@ -212,13 +264,11 @@ const DailyPlan = () => {
 
       {/* Macros Row: displays placeholder nutritional values */}
       <div className="flex justify-between mb-4">
-        {Object.entries(macros).map(([key, value]) => (
+        {Object.entries(aggregatedNutrition).map(([key, { value, unit }]) => (
           <div key={key} className="flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-green-100 text-green-700 font-semibold flex items-center justify-center">
               {value}
-              {(key === 'carbs' || key === 'fiber' || key === 'protein' || key === 'fat') && (
-                <span className="text-xs">g</span>
-              )}
+              <span className="text-xs ml-1">{unit}</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {key.charAt(0).toUpperCase() + key.slice(1)}

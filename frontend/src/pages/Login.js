@@ -89,6 +89,7 @@ const Login = ({ navigation }) => {
       });
       */
 
+      
       const response = await fetch("https://cookaing-da7d0.uc.r.appspot.com/google-login", {
         method: "POST",
         headers: {
@@ -96,6 +97,7 @@ const Login = ({ navigation }) => {
         },
         body: JSON.stringify({ idToken }),
       });
+      
 
       const data = await response.json();
       if (response.ok) {

@@ -163,8 +163,8 @@ const RecipePage = () => {
 
     {/* Recipe Details */}
     <div className="px-6 py-4">
-  <h2 className="text-2xl pt-4 font-semibold">{recipe.title || "Untitled Recipe"}</h2>
-  <p className="text-sm text-gray-500">By: {recipe.author || "Unknown"}</p>
+    <h2 className="text-2xl pt-4 font-semibold">{recipe.title || "Untitled Recipe"}</h2>
+    <p className="text-sm text-gray-500">By: {recipe.author || "Unknown"}</p>
   
   {/* Inline images with text */}
     <div className="flex items-center mt-2 space-x-4">
@@ -175,7 +175,10 @@ const RecipePage = () => {
       <span className="text-sm text-gray-600">{recipe.level || "Easy"}</span>
       
       <img src="/images/cal.png" alt="Calories" className="w-4 h-4" />
-      <span className="text-sm text-gray-600">{recipe.nutrition?.calories || "N/A"} cal</span>
+      <span className="text-sm text-gray-600">
+        {recipe.nutrition?.calories?.value ?? "N/A"}
+        {recipe.nutrition?.calories?.unit ?? ""}
+      </span>
     </div>
   </div>
 
@@ -249,10 +252,18 @@ const RecipePage = () => {
       <div className="min-w-full snap-center px-6">
         <h3 className="text-lg font-semibold">Nutrition</h3>
         <ul className="list-disc ml-6">
-          <li>Calories: {recipe.nutrition?.calories || "N/A"}</li>
-          <li>Protein: {recipe.nutrition?.protein || "N/A"}g</li>
-          <li>Fat: {recipe.nutrition?.fat || "N/A"}g</li>
-          <li>Sugar: {recipe.nutrition?.sugar || "N/A"}g</li>
+          <li>
+            Calories: {recipe.nutrition?.calories?.value ?? "N/A"} {recipe.nutrition?.calories?.unit ?? ""}
+          </li>
+          <li>
+            Protein: {recipe.nutrition?.protein?.value ?? "N/A"} {recipe.nutrition?.protein?.unit ?? "g"}
+          </li>
+          <li>
+            Fat: {recipe.nutrition?.fat?.value ?? "N/A"} {recipe.nutrition?.fat?.unit ?? "g"}
+          </li>
+          <li>
+            Sugar: {recipe.nutrition?.sugar?.value ?? "N/A"} {recipe.nutrition?.sugar?.unit ?? "g"}
+          </li>
         </ul>
       </div>
     </div>

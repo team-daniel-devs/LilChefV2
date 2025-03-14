@@ -119,6 +119,7 @@ const Saved = () => {
 
 
       {/* Filter and Sort Buttons */}
+      {/*
       <div className="flex justify-start mb-4">
         <div className="flex gap-2 w-48">
           <button className="flex-1 bg-[#0E9A61] text-white py-2 rounded-2xl shadow-md flex justify-center items-center gap-2">
@@ -131,7 +132,7 @@ const Saved = () => {
           </button>
         </div>
       </div>
-
+        */}
       {/* Recipe Grid Section */}
       <div className="grid grid-cols-2 gap-4">
         {savedRecipes.map((recipe) => (
